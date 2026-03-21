@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="EDUALLIANCE favicon">
+  <defs>
+    <linearGradient id="fg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#00C38A"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" x="8" y="8" rx="10" fill="url(#fg)" />
+  <g transform="translate(18,14)" fill="#072017">
+    <rect x="0" y="6" width="4" height="20" rx="1" />
+    <rect x="8" y="0" width="4" height="26" rx="1" />
+    <rect x="16" y="10" width="4" height="16" rx="1" />
+  </g>
+</svg>

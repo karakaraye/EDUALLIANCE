@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-main: 248 250 252;
+    --color-panel: 255 255 255;
+    --color-surface: 241 245 249;
+    --color-text-strong: 15 23 42;
+    --color-primary-brand: 52 211 153;
+    --color-brand-teal: 40 138 114;
+    --color-border-subtle: #e2e8f0;
+  }
+  
+  .dark {
+    --color-main: 10 12 16;
+    --color-panel: 22 27 34;
+    --color-surface: 15 17 21;
+    --color-text-strong: 255 255 255;
+    --color-primary-brand: 52 211 153;
+    --color-brand-teal: 40 138 114;
+    --color-border-subtle: rgba(255, 255, 255, 0.08);
+  }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background-color: rgb(var(--color-main));
+    color: rgb(var(--color-text-strong));
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+/* Chart Gradients and Effects */
+.chart-gradient-stop {
+  stop-color: #34d399;
+}
+
+.row-hover-effect:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Material Symbols sizing helper */
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24
+}
+
+@media print {
+  body {
+    visibility: hidden;
+  }
+  .printable-area {
+    visibility: visible;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background: #0f1115 !important; /* Keep the dark theme look for the table, browser will invert or print explicitly if background graphics are on */
+  }
+  .no-print, .no-print * {
+    display: none !important;
+  }
+}

@@ -1,0 +1,156 @@
+// This is your Prisma schema file.
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// User & Role Management
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  role          Role      @default(EMPLOYEE)
+  departmentId  String?
+  department    Department? @relation(fields: [departmentId], references: [id])
+  loans         Loan[]
+  payroll       Salary[]
+  managedExps   Expense[]   @relation("ExpenseManager")
+  basicSalary   Float       @default(0)
+  allowances    Json?
+  bankDetails   String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String
+  users     User[]
+  budget    Float    @default(0)
+}
+
+enum Role {
+  ADMIN
+  HR
+  FINANCE
+  LOAN_OFFICER
+  EMPLOYEE
+}
+
+// Loan Management
+model Loan {
+  id              String           @id @default(uuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id])
+  amount          Float
+  interestRate    Float
+  durationWeeks   Int
+  status          LoanStatus       @default(PENDING)
+  remainingBalance Float
+  repayments      RepaymentSchedule[]
+  createdAt       DateTime         @default(now())
+}
+
+model RepaymentSchedule {
+  id        String   @id @default(uuid())
+  loanId    String
+  loan      Loan     @relation(fields: [loanId], references: [id])
+  dueDate   DateTime
+  amount    Float
+  isPaid    Boolean  @default(false)
+  paidAt    DateTime?
+}
+
+enum LoanStatus {
+  PENDING
+  APPROVED
+  DISBURSED
+  COMPLETED
+  OVERDUE
+  DEFAULTED
+}
+
+// Payroll Management
+model Salary {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    User     @relation(fields: [employeeId], references: [id])
+  periodId    String
+  period      PayrollPeriod @relation(fields: [periodId], references: [id])
+  basicSalary Float
+  allowances  Float       @default(0)
+  grossAmount Float
+  deductions  Float
+  netAmount   Float
+  status      PayrollStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+}
+
+model PayrollPeriod {
+  id        String   @id @default(uuid())
+  startDate DateTime
+  endDate   DateTime
+  salaries  Salary[]
+}
+
+enum PayrollStatus {
+  PENDING
+  REVIEWED
+  PAID
+}
+
+// Expense Tracking
+model Expense {
+  id          String   @id @default(uuid())
+  amount      Float
+  category    String
+  description String
+  date        DateTime
+  status      ExpenseStatus @default(PENDING)
+  managerId   String
+  manager     User     @relation("ExpenseManager", fields: [managerId], references: [id])
+  receiptUrl  String?
+  createdAt   DateTime @default(now())
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Centralized Ledger for Financial Auditing
+model Ledger {
+  id          String   @id @default(uuid())
+  type        LedgerType
+  referenceId String   // ID from Loan, Salary, or Expense
+  amount      Float
+  description String
+  timestamp   DateTime @default(now())
+}
+
+enum LedgerType {
+  INCOME
+  EXPENSE
+  DISBURSEMENT
+  REPAYMENT
+}
+
+// Investors Module
+model Investor {
+  id              String   @id @default(uuid())
+  name            String
+  amountInvested  Float
+  interestRate    Float
+  dateInvested    DateTime
+  status          String   @default("ACTIVE")
+  createdAt       DateTime @default(now())
+}
+
