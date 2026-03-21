@@ -17,7 +17,7 @@ export default function InvestorsPage() {
         fetch('/api/investors')
             .then(res => res.json())
             .then(data => {
-                setInvestors(data || []);
+                setInvestors(Array.isArray(data) ? data : []);
                 setLoading(false);
             })
             .catch(err => {

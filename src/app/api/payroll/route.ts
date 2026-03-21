@@ -18,7 +18,7 @@ export async function GET() {
             const totalAmount = p.salaries.reduce((sum: any, s: any) => sum + s.netAmount, 0);
             return {
                 id: p.id,
-                date: new Date(p.endDate).toLocaleDateString('default', { month: 'short', year: 'numeric' }),
+                date: new Date(p.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
                 employees: p.salaries.length,
                 amount: totalAmount,
                 status: p.salaries[0]?.status || 'Draft'

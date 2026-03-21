@@ -15,7 +15,7 @@ export async function GET() {
             name: inv.name,
             amountInvested: inv.amountInvested,
             interestRate: inv.interestRate,
-            dateInvested: new Date(inv.dateInvested).toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' }),
+            dateInvested: new Date(inv.dateInvested).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             status: inv.status,
             rawDate: inv.dateInvested
         }));

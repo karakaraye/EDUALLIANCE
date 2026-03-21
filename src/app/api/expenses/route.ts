@@ -15,7 +15,7 @@ export async function GET() {
             rawId: exp.id,
             desc: exp.description,
             category: exp.category,
-            date: new Date(exp.date).toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' }),
+            date: new Date(exp.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             amount: exp.amount,
             status: exp.status,
             managerName: exp.manager?.name || 'Unknown',

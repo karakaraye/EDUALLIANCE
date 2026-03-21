@@ -19,7 +19,7 @@ export default function PayrollPage() {
         try {
             const res = await fetch('/api/payroll');
             const data = await res.json();
-            setPayrolls(data || []);
+            setPayrolls(Array.isArray(data) ? data : []);
             setLoading(false);
         } catch (err) {
             console.error('Failed to fetch payrolls', err);

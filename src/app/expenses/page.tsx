@@ -15,7 +15,7 @@ export default function ExpensesPage() {
         fetch('/api/expenses')
             .then(res => res.json())
             .then(data => {
-                setExpenses(data || []);
+                setExpenses(Array.isArray(data) ? data : []);
                 setLoading(false);
             })
             .catch(err => {
