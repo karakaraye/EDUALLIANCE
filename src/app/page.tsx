@@ -17,6 +17,7 @@ export default function DashboardPage() {
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [apiLedger, setApiLedger] = useState<any[]>([]);
+    const [timeFrame, setTimeFrame] = useState<number>(6);
 
     useEffect(() => {
         setIsMounted(true);
@@ -85,17 +86,17 @@ export default function DashboardPage() {
     const recentActivity = fullLedger.slice(0, 4);
     const recentLedger = fullLedger.slice(0, 6);
 
-    // Financial Dynamics Calculation (Last 6 Months)
+    // Financial Dynamics Calculation
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     
-    const last6Months = Array.from({length: 6}, (_, i) => {
-        const d = new Date(currentYear, currentMonth - 5 + i, 1);
+    const chartMonthsRange = Array.from({length: timeFrame}, (_, i) => {
+        const d = new Date(currentYear, currentMonth - (timeFrame - 1) + i, 1);
         return { month: d.getMonth(), year: d.getFullYear(), label: months[d.getMonth()] };
     });
 
-    const monthlyFinancials = last6Months.map(m => {
+    const monthlyFinancials = chartMonthsRange.map(m => {
         const txns = fullLedger.filter(t => {
             const d = new Date(t.date);
             return d.getMonth() === m.month && d.getFullYear() === m.year;
@@ -105,8 +106,8 @@ export default function DashboardPage() {
         return { label: m.label, income, expense, profit: income - expense };
     });
 
-    const currentMonthData = monthlyFinancials[5];
-    const prevMonthData = monthlyFinancials[4];
+    const currentMonthData = monthlyFinancials[monthlyFinancials.length - 1] || {profit: 0};
+    const prevMonthData = monthlyFinancials[monthlyFinancials.length - 2] || {profit: 0};
     const momGrowth = currentMonthData.profit - prevMonthData.profit;
     const momLabel = momGrowth >= 0 ? `+${formatCurrencyShort(momGrowth)}` : formatCurrencyShort(momGrowth);
 
@@ -194,21 +195,32 @@ export default function DashboardPage() {
             <div className="p-8 pb-4 flex items-center justify-between">
               <div>
                 <h3 className="text-strong text-xl font-bold tracking-tight">Financial Dynamics</h3>
-                <p className="text-slate-500 text-xs mt-1 uppercase tracking-widest font-bold">Annual Performance Matrix 2024</p>
+                <p className="text-slate-500 text-xs mt-1 uppercase tracking-widest font-bold">Performance Metrics</p>
               </div>
-              <div className="flex items-center gap-8">
-                <div className="flex flex-col text-right">
-                  <span className="text-primary text-2xl font-black">{efficiency}%</span>
-                  <span className="text-slate-600 text-[9px] font-black uppercase tracking-widest">Efficiency</span>
-                </div>
-                <div className="flex flex-col text-right">
-                  <span className={`text-2xl font-black ${momGrowth >= 0 ? 'text-strong' : 'text-red-400'}`}>{momLabel}</span>
-                  <span className="text-slate-600 text-[9px] font-black uppercase tracking-widest">MoM Growth</span>
+              <div className="flex items-center gap-4 sm:gap-8">
+                <select 
+                   value={timeFrame} 
+                   onChange={(e) => setTimeFrame(Number(e.target.value))}
+                   className="bg-panel border border-border-subtle text-slate-400 text-xs font-bold rounded px-2 py-1.5 sm:px-4 sm:py-2 cursor-pointer outline-none hover:border-brand-teal/50 focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-all appearance-none"
+                >
+                   <option value={3} className="bg-panel text-strong">Last 3 Months</option>
+                   <option value={6} className="bg-panel text-strong">Last 6 Months</option>
+                   <option value={12} className="bg-panel text-strong">Last 12 Months</option>
+                </select>
+                <div className="hidden sm:flex items-center gap-8 pl-6 border-l border-border-subtle">
+                  <div className="flex flex-col text-right">
+                    <span className="text-primary text-2xl font-black">{efficiency}%</span>
+                    <span className="text-slate-600 text-[9px] font-black uppercase tracking-widest">Efficiency</span>
+                  </div>
+                  <div className="flex flex-col text-right">
+                    <span className={`text-2xl font-black ${momGrowth >= 0 ? 'text-strong' : 'text-red-400'}`}>{momLabel}</span>
+                    <span className="text-slate-600 text-[9px] font-black uppercase tracking-widest">MoM Growth</span>
+                  </div>
                 </div>
               </div>
             </div>
             {/* Dynamic Tailwind Bar Chart */}
-            <div className="flex h-[280px] w-full items-end justify-between px-6 pb-12 pt-4 relative">
+            <div className="flex h-[280px] w-full items-end justify-between px-2 sm:px-6 pb-12 pt-4 relative">
               {/* Horizontal grid lines */}
               <div className="absolute inset-x-8 bottom-12 top-4 flex flex-col justify-between z-0 pointer-events-none opacity-[0.03]">
                 <div className="w-full border-t border-white"></div>
@@ -218,7 +230,7 @@ export default function DashboardPage() {
               </div>
               
               {monthlyFinancials.map((data, idx) => (
-                  <div key={idx} className="flex flex-col items-center gap-2 z-10 w-1/6 relative group">
+                  <div key={idx} className="flex flex-col items-center gap-2 z-10 flex-1 relative group w-full">
                     <div className="flex items-end justify-center w-full gap-1 sm:gap-2 h-[220px]">
                       {/* Income Bar */}
                       <div 
