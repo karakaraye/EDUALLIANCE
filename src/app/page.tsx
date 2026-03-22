@@ -85,6 +85,37 @@ export default function DashboardPage() {
     const recentActivity = fullLedger.slice(0, 4);
     const recentLedger = fullLedger.slice(0, 6);
 
+    // Financial Dynamics Calculation (Last 6 Months)
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    const last6Months = Array.from({length: 6}, (_, i) => {
+        const d = new Date(currentYear, currentMonth - 5 + i, 1);
+        return { month: d.getMonth(), year: d.getFullYear(), label: months[d.getMonth()] };
+    });
+
+    const monthlyFinancials = last6Months.map(m => {
+        const txns = fullLedger.filter(t => {
+            const d = new Date(t.date);
+            return d.getMonth() === m.month && d.getFullYear() === m.year;
+        });
+        const income = txns.filter(t => t.type === 'Loan' || t.type === 'Income').reduce((sum, t) => sum + (Number(t.amount) * 0.065), 0);
+        const expense = txns.filter(t => t.type === 'Expense' || t.type === 'Payroll').reduce((sum, t) => sum + Number(t.amount), 0);
+        return { label: m.label, income, expense, profit: income - expense };
+    });
+
+    const currentMonthData = monthlyFinancials[5];
+    const prevMonthData = monthlyFinancials[4];
+    const momGrowth = currentMonthData.profit - prevMonthData.profit;
+    const momLabel = momGrowth >= 0 ? `+${formatCurrencyShort(momGrowth)}` : formatCurrencyShort(momGrowth);
+
+    const total6MoIncome = monthlyFinancials.reduce((sum, m) => sum + m.income, 0);
+    const total6MoExpense = monthlyFinancials.reduce((sum, m) => sum + m.expense, 0);
+    const efficiency = total6MoIncome > 0 ? (((total6MoIncome - total6MoExpense) / total6MoIncome) * 100).toFixed(1) : '0.0';
+    const maxChartVal = Math.max(...monthlyFinancials.map(m => Math.max(m.income, m.expense)), 10000);
+
+
     if (!isMounted) return null;
 
   return (
@@ -167,36 +198,47 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center gap-8">
                 <div className="flex flex-col text-right">
-                  <span className="text-primary text-2xl font-black">86.2%</span>
+                  <span className="text-primary text-2xl font-black">{efficiency}%</span>
                   <span className="text-slate-600 text-[9px] font-black uppercase tracking-widest">Efficiency</span>
                 </div>
                 <div className="flex flex-col text-right">
-                  <span className="text-strong text-2xl font-black">+₦42k</span>
+                  <span className={`text-2xl font-black ${momGrowth >= 0 ? 'text-strong' : 'text-red-400'}`}>{momLabel}</span>
                   <span className="text-slate-600 text-[9px] font-black uppercase tracking-widest">MoM Growth</span>
                 </div>
               </div>
             </div>
-            <div className="px-8 py-6 h-[340px] w-full relative">
-              {/* SVG Chart */}
-              <svg className="w-full h-full text-primary" preserveAspectRatio="none" viewBox="0 0 1000 300">
-                <defs>
-                  <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="#34d399" stopOpacity="0.2"></stop>
-                    <stop offset="100%" stopColor="#34d399" stopOpacity="0"></stop>
-                  </linearGradient>
-                </defs>
-                <path d="M0 250 C 100 240, 150 150, 200 160 S 300 100, 400 120 S 500 200, 600 180 S 750 40, 850 60 S 1000 140, 1000 140 V 300 H 0 Z" fill="url(#chartGradient)"></path>
-                <path d="M0 250 C 100 240, 150 150, 200 160 S 300 100, 400 120 S 500 200, 600 180 S 750 40, 850 60 S 1000 140, 1000 140" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="4"></path>
-                <line stroke="rgba(255,255,255,0.05)" strokeWidth="1" x1="0" x2="1000" y1="280" y2="280"></line>
-              </svg>
-              <div className="flex justify-between mt-4 px-2 absolute bottom-2 left-8 right-8">
-                <span className="text-[10px] font-black text-slate-600 uppercase">Jan</span>
-                <span className="text-[10px] font-black text-slate-600 uppercase">Mar</span>
-                <span className="text-[10px] font-black text-slate-600 uppercase">May</span>
-                <span className="text-[10px] font-black text-slate-600 uppercase">Jul</span>
-                <span className="text-[10px] font-black text-slate-600 uppercase">Sep</span>
-                <span className="text-[10px] font-black text-slate-600 uppercase">Nov</span>
+            {/* Dynamic Tailwind Bar Chart */}
+            <div className="flex h-[280px] w-full items-end justify-between px-6 pb-12 pt-4 relative">
+              {/* Horizontal grid lines */}
+              <div className="absolute inset-x-8 bottom-12 top-4 flex flex-col justify-between z-0 pointer-events-none opacity-[0.03]">
+                <div className="w-full border-t border-white"></div>
+                <div className="w-full border-t border-white"></div>
+                <div className="w-full border-t border-white"></div>
+                <div className="w-full border-t border-white"></div>
               </div>
+              
+              {monthlyFinancials.map((data, idx) => (
+                  <div key={idx} className="flex flex-col items-center gap-2 z-10 w-1/6 relative group">
+                    <div className="flex items-end justify-center w-full gap-1 sm:gap-2 h-[220px]">
+                      {/* Income Bar */}
+                      <div 
+                        className="w-1/3 max-w-[24px] bg-brand-teal rounded-t transition-all duration-500 relative hover:brightness-125 hover:shadow-[0_0_15px_rgba(52,211,153,0.3)]"
+                        style={{ height: `${(data.income / maxChartVal) * 100}%`, minHeight: '4px' }}
+                      >
+                         <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface border border-border-subtle text-strong text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 shadow-xl">In: {formatCurrencyShort(data.income)}</div>
+                      </div>
+                      {/* Expense Bar */}
+                      <div 
+                        className="w-1/3 max-w-[24px] bg-red-400 rounded-t transition-all duration-500 relative hover:brightness-125 hover:shadow-[0_0_15px_rgba(248,113,113,0.3)]"
+                        style={{ height: `${(data.expense / maxChartVal) * 100}%`, minHeight: '4px' }}
+                      >
+                         <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-surface border border-border-subtle text-strong text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 shadow-xl">Out: {formatCurrencyShort(data.expense)}</div>
+                      </div>
+                    </div>
+                    {/* X-Axis Label */}
+                    <span className="text-[10px] font-black text-slate-500 uppercase absolute -bottom-8">{data.label}</span>
+                  </div>
+              ))}
             </div>
           </div>
 
