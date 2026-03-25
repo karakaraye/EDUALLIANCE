@@ -19,7 +19,8 @@ export async function GET() {
             amount: exp.amount,
             status: exp.status,
             managerName: exp.manager?.name || 'Unknown',
-            rawDate: exp.date
+            rawDate: exp.date,
+            receiptUrl: exp.receiptUrl
         }));
 
         return NextResponse.json(formatted);
@@ -32,7 +33,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { amount, category, description, date, managerId } = body;
+        const { amount, category, description, date, managerId, receiptUrl } = body;
 
         const expense = await prisma.expense.create({
             data: {
@@ -41,6 +42,7 @@ export async function POST(req: NextRequest) {
                 description: String(description),
                 date: new Date(date),
                 managerId: String(managerId),
+                receiptUrl: receiptUrl ? String(receiptUrl) : null,
                 status: 'APPROVED'
             }
         });

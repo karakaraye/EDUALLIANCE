@@ -4,16 +4,13 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-
     // Mock login handler
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault();
-        console.log('Login attempt', { email, password });
-        // Navigate to dashboard or show error
-        window.location.href = '/';
+    const handleLogin = (role: string) => {
+        localStorage.setItem('edualliance_role', role);
+        if (role === 'ADMIN') window.location.href = '/';
+        else if (role === 'LOANS') window.location.href = '/loans';
+        else if (role === 'INVESTORS') window.location.href = '/investors';
+        else if (role === 'FINANCE') window.location.href = '/expenses';
     };
 
     return (
@@ -59,58 +56,60 @@ export default function LoginPage() {
                             <p className="text-slate-500 text-sm">Access the Edualliance Financial System.</p>
                         </div>
 
-                        <form onSubmit={handleLogin} className="flex flex-col gap-5">
-
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-slate-300 text-xs font-bold ml-1">Email Address</label>
-                                <div className="relative group">
-                                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-teal transition-colors text-[20px]">mail</span>
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="name@company.com"
-                                        className="w-full h-12 pl-12 pr-4 bg-[#0f1115] border border-border-subtle rounded-lg text-strong text-sm focus:border-brand-teal focus:ring-1 focus:ring-brand-teal outline-none transition-all placeholder:text-slate-600"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-1.5">
-                                <div className="flex justify-between items-center ml-1">
-                                    <label className="text-slate-300 text-xs font-bold">Password</label>
-                                    <a href="#" className="text-brand-teal text-xs font-bold hover:text-strong transition-colors">Forgot?</a>
-                                </div>
-                                <div className="relative group">
-                                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-teal transition-colors text-[20px]">lock</span>
-                                    <input
-                                        type={showPassword ? "text" : "password"}
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="Enter your password"
-                                        className="w-full h-12 pl-12 pr-12 bg-[#0f1115] border border-border-subtle rounded-lg text-strong text-sm focus:border-brand-teal focus:ring-1 focus:ring-brand-teal outline-none transition-all placeholder:text-slate-600"
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-strong transition-colors flex items-center justify-center"
-                                    >
-                                        <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
-                                    </button>
-                                </div>
-                            </div>
-
+                        <div className="flex flex-col gap-3">
                             <button
-                                type="button"
-                                onClick={handleLogin}
-                                className="mt-2 w-full h-12 bg-gradient-to-r from-[#06b6d4] to-[#288a72] hover:from-[#0891b2] hover:to-[#227560] text-strong font-bold rounded-lg shadow-lg hover:shadow-cyan-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                onClick={() => handleLogin('ADMIN')}
+                                className="w-full h-12 bg-slate-800 border border-slate-700 hover:border-brand-teal hover:bg-slate-800/80 text-strong font-bold rounded-lg transition-all flex items-center gap-3 px-4 group"
                             >
-                                Secure Login
-                                <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                                <div className="size-8 rounded bg-primary/20 text-primary flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
+                                </div>
+                                <div className="flex flex-col items-start leading-tight">
+                                    <span>Administrator</span>
+                                    <span className="text-[10px] text-slate-400 font-normal">Full System Access</span>
+                                </div>
+                                <span className="material-symbols-outlined ml-auto text-slate-500 group-hover:text-brand-teal transition-colors">arrow_forward</span>
                             </button>
-
-                        </form>
+                            <button
+                                onClick={() => handleLogin('LOANS')}
+                                className="w-full h-12 bg-slate-800 border border-slate-700 hover:border-brand-teal hover:bg-slate-800/80 text-strong font-bold rounded-lg transition-all flex items-center gap-3 px-4 group"
+                            >
+                                <div className="size-8 rounded bg-brand-teal/20 text-brand-teal flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-[16px]">payments</span>
+                                </div>
+                                <div className="flex flex-col items-start leading-tight">
+                                    <span>Loan Officer</span>
+                                    <span className="text-[10px] text-slate-400 font-normal">Loans Module Only</span>
+                                </div>
+                                <span className="material-symbols-outlined ml-auto text-slate-500 group-hover:text-brand-teal transition-colors">arrow_forward</span>
+                            </button>
+                            <button
+                                onClick={() => handleLogin('INVESTORS')}
+                                className="w-full h-12 bg-slate-800 border border-slate-700 hover:border-brand-teal hover:bg-slate-800/80 text-strong font-bold rounded-lg transition-all flex items-center gap-3 px-4 group"
+                            >
+                                <div className="size-8 rounded bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-[16px]">handshake</span>
+                                </div>
+                                <div className="flex flex-col items-start leading-tight">
+                                    <span>Investor Rep</span>
+                                    <span className="text-[10px] text-slate-400 font-normal">Investors Module Only</span>
+                                </div>
+                                <span className="material-symbols-outlined ml-auto text-slate-500 group-hover:text-brand-teal transition-colors">arrow_forward</span>
+                            </button>
+                            <button
+                                onClick={() => handleLogin('FINANCE')}
+                                className="w-full h-12 bg-slate-800 border border-slate-700 hover:border-brand-teal hover:bg-slate-800/80 text-strong font-bold rounded-lg transition-all flex items-center gap-3 px-4 group"
+                            >
+                                <div className="size-8 rounded bg-yellow-500/20 text-yellow-500 flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-[16px]">receipt_long</span>
+                                </div>
+                                <div className="flex flex-col items-start leading-tight">
+                                    <span>Finance Dept</span>
+                                    <span className="text-[10px] text-slate-400 font-normal">Payroll & Expenses Only</span>
+                                </div>
+                                <span className="material-symbols-outlined ml-auto text-slate-500 group-hover:text-brand-teal transition-colors">arrow_forward</span>
+                            </button>
+                        </div>
 
                         <div className="mt-8 pt-6 border-t border-border-subtle flex flex-col items-center gap-2">
                             <div className="flex items-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-widest">

@@ -146,17 +146,24 @@ export default function PayrollPage() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        {run.status !== 'PAID' ? (
-                                            <button 
-                                                onClick={() => handleApprove(run.id)}
-                                                disabled={approvingId === run.id}
-                                                className="bg-brand-teal hover:bg-brand-teal/80 text-strong text-xs font-bold px-4 py-2 rounded-lg transition-colors"
-                                            >
-                                                {approvingId === run.id ? 'Approving...' : 'Approve'}
-                                            </button>
-                                        ) : (
-                                            <button className="text-slate-500 hover:text-strong transition-colors"><span className="material-symbols-outlined">check_circle</span></button>
-                                        )}
+                                        <div className="flex items-center justify-end gap-2">
+                                            <Link href={`/payroll/${run.id}/print`} target="_blank">
+                                                <button className="text-slate-500 hover:text-brand-teal transition-colors" title="Print Payroll Record">
+                                                    <span className="material-symbols-outlined text-[18px]">print</span>
+                                                </button>
+                                            </Link>
+                                            {run.status !== 'PAID' ? (
+                                                <button 
+                                                    onClick={() => handleApprove(run.id)}
+                                                    disabled={approvingId === run.id}
+                                                    className="bg-brand-teal hover:bg-brand-teal/80 text-strong text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+                                                >
+                                                    {approvingId === run.id ? 'Approving...' : 'Approve'}
+                                                </button>
+                                            ) : (
+                                                <button className="text-slate-500 hover:text-strong transition-colors"><span className="material-symbols-outlined">check_circle</span></button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

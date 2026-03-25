@@ -12,6 +12,8 @@ export function ExpenseModal({ isOpen, onClose, onSuccess }: ExpenseModalProps) 
     const [category, setCategory] = useState('Office');
     const [date, setDate] = useState('');
     const [managerId, setManagerId] = useState('');
+    const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+    const [fileName, setFileName] = useState('');
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [employees, setEmployees] = useState<any[]>([]);
@@ -30,6 +32,26 @@ export function ExpenseModal({ isOpen, onClose, onSuccess }: ExpenseModalProps) 
 
     if (!isOpen) return null;
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) { // 2MB
+                alert("File too large. Maximum 2MB allowed.");
+                e.target.value = '';
+                return;
+            }
+            setFileName(file.name);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setReceiptUrl(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setFileName('');
+            setReceiptUrl(null);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
@@ -43,7 +65,8 @@ export function ExpenseModal({ isOpen, onClose, onSuccess }: ExpenseModalProps) 
                     amount,
                     category,
                     date,
-                    managerId
+                    managerId,
+                    receiptUrl
                 })
             });
 
@@ -53,6 +76,8 @@ export function ExpenseModal({ isOpen, onClose, onSuccess }: ExpenseModalProps) 
                 setAmount('');
                 setCategory('Office');
                 setManagerId('');
+                setReceiptUrl(null);
+                setFileName('');
                 onSuccess();
                 onClose();
             } else {
@@ -147,6 +172,25 @@ export function ExpenseModal({ isOpen, onClose, onSuccess }: ExpenseModalProps) 
                                     <option key={emp.id} value={emp.id}>{emp.name}</option>
                                 ))}
                             </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div className="flex justify-between items-center mb-1.5">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Upload Receipt (Optional)</label>
+                            {fileName && <span className="text-brand-teal text-[10px] font-bold italic truncate max-w-[150px]">{fileName}</span>}
+                        </div>
+                        <div className="relative">
+                            <input 
+                                type="file" 
+                                accept="image/*,.pdf"
+                                onChange={handleFileChange}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            />
+                            <div className="w-full bg-main/50 border border-dashed border-border-subtle hover:border-brand-teal/50 rounded-xl px-4 py-3 text-sm text-slate-400 flex items-center justify-center gap-2 transition-colors">
+                                <span className="material-symbols-outlined text-[18px]">{fileName ? 'done' : 'cloud_upload'}</span>
+                                {fileName ? 'File Captured - Click to replace' : 'Click to browse or drag file here...'}
+                            </div>
                         </div>
                     </div>
 

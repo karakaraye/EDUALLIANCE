@@ -41,6 +41,11 @@ export default function RunPayrollPage() {
             });
 
             if (response.ok) {
+                const resData = await response.json();
+                if (resData.periodId) {
+                    localStorage.setItem(`payroll_details_${resData.periodId}`, JSON.stringify(employees));
+                    localStorage.setItem(`payroll_month_${resData.periodId}`, payrollMonth);
+                }
                 router.push('/payroll');
                 router.refresh();
             } else {
@@ -159,7 +164,14 @@ export default function RunPayrollPage() {
                                         <tbody className="divide-y divide-border-subtle">
                                             {employees.map((emp, idx) => (
                                                 <tr key={idx} className="hover:bg-white/[0.02]">
-                                                    <td className="px-5 py-4 text-sm font-bold text-strong">{emp.employeeName}</td>
+                                                    <td className="px-5 py-4">
+                                                        <div className="flex flex-col items-start gap-1">
+                                                            <span className="text-sm font-bold text-strong">{emp.employeeName}</span>
+                                                            <span className="text-[9px] font-mono bg-white/5 border border-border-subtle px-2 py-0.5 rounded text-slate-400">
+                                                                {emp.bankName} - {emp.accountNumber}
+                                                            </span>
+                                                        </div>
+                                                    </td>
                                                     <td className="px-5 py-4 text-sm text-slate-400">{formatCurrency(emp.breakdown.gross)}</td>
                                                     <td className="px-5 py-4 text-sm font-black text-brand-teal text-right">{formatCurrency(emp.breakdown.net)}</td>
                                                     <td className="px-5 py-4 text-right">

@@ -7,8 +7,10 @@ import { usePathname } from 'next/navigation';
 export const Navigation = () => {
     const pathname = usePathname();
     const [isDarkMode, setIsDarkMode] = React.useState(true);
+    const [role, setRole] = React.useState<string | null>(null);
 
     React.useEffect(() => {
+        setRole(localStorage.getItem('edualliance_role') || 'ADMIN');
         // Run once on client mount to sync state with html root
         const theme = localStorage.getItem('edualliance_theme') || 'dark';
         if (theme === 'dark') {
@@ -49,53 +51,65 @@ export const Navigation = () => {
                 </Link>
 
                 <nav className="hidden xl:flex items-center gap-8">
-                    <Link
-                        href="/"
-                        className={`text-sm font-semibold flex items-center gap-2 group relative transition-colors ${isActive('/') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
-                    >
-                        <span className="material-symbols-outlined text-[20px]">dashboard</span> Dashboard
-                        {isActive('/') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
-                    </Link>
+                    {role === 'ADMIN' && (
+                        <Link
+                            href="/"
+                            className={`text-sm font-semibold flex items-center gap-2 group relative transition-colors ${isActive('/') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
+                        >
+                            <span className="material-symbols-outlined text-[20px]">dashboard</span> Dashboard
+                            {isActive('/') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
+                        </Link>
+                    )}
 
-                    <Link
-                        href="/loans"
-                        className={`text-sm font-medium flex items-center gap-2 transition-colors ${isActive('/loans') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
-                    >
-                        <span className="material-symbols-outlined text-[20px]">payments</span> Loans
-                        {isActive('/loans') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
-                    </Link>
+                    {(role === 'ADMIN' || role === 'LOANS') && (
+                        <Link
+                            href="/loans"
+                            className={`text-sm font-medium flex items-center gap-2 transition-colors ${isActive('/loans') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
+                        >
+                            <span className="material-symbols-outlined text-[20px]">payments</span> Loans
+                            {isActive('/loans') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
+                        </Link>
+                    )}
 
-                    <Link
-                        href="/payroll"
-                        className={`text-sm font-medium flex items-center gap-2 transition-colors ${isActive('/payroll') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
-                    >
-                        <span className="material-symbols-outlined text-[20px]">group</span> Payroll
-                        {isActive('/payroll') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
-                    </Link>
+                    {(role === 'ADMIN' || role === 'FINANCE') && (
+                        <Link
+                            href="/payroll"
+                            className={`text-sm font-medium flex items-center gap-2 transition-colors ${isActive('/payroll') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
+                        >
+                            <span className="material-symbols-outlined text-[20px]">group</span> Payroll
+                            {isActive('/payroll') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
+                        </Link>
+                    )}
 
-                    <Link
-                        href="/expenses"
-                        className={`text-sm font-medium flex items-center gap-2 transition-colors ${isActive('/expenses') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
-                    >
-                        <span className="material-symbols-outlined text-[20px]">receipt_long</span> Expenses
-                        {isActive('/expenses') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
-                    </Link>
+                    {(role === 'ADMIN' || role === 'FINANCE') && (
+                        <Link
+                            href="/expenses"
+                            className={`text-sm font-medium flex items-center gap-2 transition-colors ${isActive('/expenses') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
+                        >
+                            <span className="material-symbols-outlined text-[20px]">receipt_long</span> Expenses
+                            {isActive('/expenses') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
+                        </Link>
+                    )}
 
-                    <Link
-                        href="/investors"
-                        className={`text-sm font-medium flex items-center gap-2 transition-colors ${isActive('/investors') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
-                    >
-                        <span className="material-symbols-outlined text-[20px]">handshake</span> Investors
-                        {isActive('/investors') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
-                    </Link>
+                    {(role === 'ADMIN' || role === 'INVESTORS') && (
+                        <Link
+                            href="/investors"
+                            className={`text-sm font-medium flex items-center gap-2 transition-colors ${isActive('/investors') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
+                        >
+                            <span className="material-symbols-outlined text-[20px]">handshake</span> Investors
+                            {isActive('/investors') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
+                        </Link>
+                    )}
 
-                    <Link
-                        href="/reports"
-                        className={`text-sm font-medium flex items-center gap-2 transition-colors ${isActive('/reports') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
-                    >
-                        <span className="material-symbols-outlined text-[20px]">monitoring</span> Reports
-                        {isActive('/reports') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
-                    </Link>
+                    {role === 'ADMIN' && (
+                        <Link
+                            href="/reports"
+                            className={`text-sm font-medium flex items-center gap-2 transition-colors ${isActive('/reports') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
+                        >
+                            <span className="material-symbols-outlined text-[20px]">monitoring</span> Reports
+                            {isActive('/reports') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
+                        </Link>
+                    )}
                 </nav>
             </div>
 
@@ -126,9 +140,17 @@ export const Navigation = () => {
                     </button>
                 </Link>
 
-                <div
-                    className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-1 ring-border-subtle ring-offset-2 ring-offset-surface cursor-pointer ml-2"
-                    style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBmlfkXIUB8Aqf1awBccTMIhK_rES2fLtpZ1rMXh9UYdLj38CWKDvUvqkhEmtzCshdqpW2AjLYJgbTc_ILMTkIYUXoDQbeHDi1zWOOvg7JXBXpxbJISeheRc_EWz603tp0pFfJXKOkMgWuSnw5q8zUHQAlKVouccVnqLHTOk09hXIfQrkAVDiWTWKDGNcOg1wYM0rH0WkFKOpwxnO07PXcAyVjI0t6vF2Tj7xffhJ2UoNvxfjoDb_7__1G0guR9O3rBsTmz3D0ePOSw")' }}>
+                <div className="flex items-center gap-2 ml-2">
+                    <div
+                        className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-1 ring-border-subtle ring-offset-2 ring-offset-surface cursor-pointer"
+                        style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBmlfkXIUB8Aqf1awBccTMIhK_rES2fLtpZ1rMXh9UYdLj38CWKDvUvqkhEmtzCshdqpW2AjLYJgbTc_ILMTkIYUXoDQbeHDi1zWOOvg7JXBXpxbJISeheRc_EWz603tp0pFfJXKOkMgWuSnw5q8zUHQAlKVouccVnqLHTOk09hXIfQrkAVDiWTWKDGNcOg1wYM0rH0WkFKOpwxnO07PXcAyVjI0t6vF2Tj7xffhJ2UoNvxfjoDb_7__1G0guR9O3rBsTmz3D0ePOSw")' }}>
+                    </div>
+                    <button 
+                        onClick={() => { localStorage.removeItem('edualliance_role'); window.location.href='/login'; }}
+                        className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-colors ml-1"
+                    >
+                        Sign Out
+                    </button>
                 </div>
             </div>
         </header>

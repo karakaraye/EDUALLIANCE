@@ -4,16 +4,12 @@ import React from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { LoanRepaymentsModal } from '@/components/forms/LoanRepaymentsModal';
+import { calculateLoanStatus } from '@/utils/loan-utils';
 
 export default function LoansPage() {
-    const defaultLoans = [
-        { id: '#L-1024', name: 'John Doe', image: 'https://i.pravatar.cc/150?u=a042581f4e29026024d', amount: 5000, rate: 5.5, durationMonths: 12, amountLeft: 2140, status: 'Active', disburseDate: 'Oct 15, 2025' },
-        { id: '#L-1025', name: 'Sarah Smith', image: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', amount: 12000, rate: 4.0, durationMonths: 24, amountLeft: 0, status: 'Paid Full', disburseDate: 'Jan 10, 2024' },
-        { id: '#L-1026', name: 'Mike Ross', image: 'https://i.pravatar.cc/150?u=a04258114e29026302d', amount: 3500, rate: 6.0, durationMonths: 6, amountLeft: 3500, status: 'Overdue', disburseDate: 'Dec 01, 2025' },
-        { id: '#L-1027', name: 'Rachel Zane', image: 'https://i.pravatar.cc/150?u=a042581f4e290260241', amount: 8000, rate: 4.5, durationMonths: 18, amountLeft: 4200, status: 'Active', disburseDate: 'Mar 20, 2025' },
-        { id: '#L-1028', name: 'Harvey Specter', image: 'https://i.pravatar.cc/150?u=a042581f4e290260242', amount: 25000, rate: 3.8, durationMonths: 36, amountLeft: 0, status: 'Paid Full', disburseDate: 'Jun 05, 2023' },
-    ];
-    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const defaultLoans: any[] = [];
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [loans, setLoans] = React.useState<any[]>([]);
     const [isMounted, setIsMounted] = React.useState(false);
@@ -25,7 +21,19 @@ export default function LoansPage() {
         const saved = localStorage.getItem('edualliance_loans');
         if (saved) {
             try {
-                setLoans(JSON.parse(saved));
+                const parsed = JSON.parse(saved);
+                let hasChanges = false;
+                const enriched = parsed.map((l: any) => {
+                    const status = calculateLoanStatus(l);
+                    if (l.status !== status) hasChanges = true;
+                    return { ...l, status };
+                });
+                
+                if (hasChanges) {
+                    localStorage.setItem('edualliance_loans', JSON.stringify(enriched));
+                }
+                
+                setLoans(enriched);
             } catch (e) {
                 console.error("Failed to parse loans, resetting to default.");
                 setLoans(defaultLoans);
@@ -46,6 +54,20 @@ export default function LoansPage() {
         return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
     };
 
+    const deleteLoan = (id: string) => {
+        const savedLoans = localStorage.getItem('edualliance_loans');
+        if (savedLoans) {
+            try {
+                const parsed = JSON.parse(savedLoans);
+                const updatedLoans = parsed.filter((l: any) => l.id !== id);
+                localStorage.setItem('edualliance_loans', JSON.stringify(updatedLoans));
+                setLoans(updatedLoans);
+            } catch (e) {
+                console.error("Failed to delete loan", e);
+            }
+        }
+    };
+
     if (!isMounted) return null; // Avoid hydration mismatch on initial render
 
     // Dynamic KPI Calculations
@@ -56,8 +78,8 @@ export default function LoansPage() {
     const totalPortfolio = nonPaidLoansArr.reduce((sum: number, l: any) => sum + Number(l.amount), 0);
     const activeLoansCount = activeLoansArr.length;
     const overdueVolume = overdueLoansArr.reduce((sum: number, l: any) => sum + Number(l.amountLeft), 0);
-    const avgInterestRate = activeLoansArr.length > 0 
-        ? activeLoansArr.reduce((sum: number, l: any) => sum + Number(l.rate), 0) / activeLoansArr.length 
+    const avgInterestRate = activeLoansArr.length > 0
+        ? activeLoansArr.reduce((sum: number, l: any) => sum + Number(l.rate), 0) / activeLoansArr.length
         : 0;
 
     // Pagination logic
@@ -82,7 +104,7 @@ export default function LoansPage() {
                         <p className="text-slate-500 text-sm mt-1">Detailed tracking and analysis of all active and historical loan disbursements.</p>
                     </div>
                     <div className="flex gap-3">
-                        <button 
+                        <button
                             onClick={() => setIsRepaymentModalOpen(true)}
                             className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-brand-teal/30 text-brand-teal hover:bg-brand-teal/10 text-xs font-bold transition-all"
                         >
@@ -99,7 +121,7 @@ export default function LoansPage() {
                     </div>
                 </div>
 
-                <LoanRepaymentsModal 
+                <LoanRepaymentsModal
                     isOpen={isRepaymentModalOpen}
                     onClose={() => setIsRepaymentModalOpen(false)}
                     loans={loans}
@@ -161,13 +183,13 @@ export default function LoansPage() {
                     <div className="flex items-center gap-2 text-xs text-slate-500 font-bold px-4">
                         <span>Showing {loans.length > 0 ? startEntry : 0}-{endEntry} of {loans.length} entries</span>
                         <div className="flex gap-1 ml-2">
-                            <button 
+                            <button
                                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                 disabled={currentPage === 1}
                                 className={`size-6 flex items-center justify-center rounded bg-panel border border-border-subtle hover:bg-white/5 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                                 <span className="material-symbols-outlined text-[14px]">chevron_left</span>
                             </button>
-                            <button 
+                            <button
                                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                 disabled={currentPage === totalPages}
                                 className={`size-6 flex items-center justify-center rounded bg-panel border border-border-subtle hover:bg-white/5 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
@@ -210,58 +232,74 @@ export default function LoansPage() {
                                 const pctPaid = expectedTotalRepayment > 0 ? (totalPaid / expectedTotalRepayment) * 100 : 0;
 
                                 return (
-                                <tr key={loan.id} className="group hover:bg-white/[0.02] transition-colors cursor-pointer">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <Link href={`/loans/${loan.id.replace('#', '')}`} className="text-brand-teal text-xs font-bold hover:underline">
-                                            {loan.id}
-                                        </Link>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center gap-3">
-                                            <img src={loan.image} alt={loan.name} className="size-8 rounded-full border border-border-subtle" />
-                                            <span className="text-sm font-bold text-strong">{loan.name}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm font-medium text-slate-400 whitespace-nowrap">{loan.disburseDate}</td>
-                                    <td className="px-6 py-4 text-sm font-black text-strong whitespace-nowrap">{formatCurrency(loanApproved)}</td>
-                                    <td className="px-6 py-4 text-xs font-medium text-slate-300 whitespace-nowrap">{formatCurrency(oneOffFee)}</td>
-                                    <td className="px-6 py-4 text-xs font-medium text-slate-300 whitespace-nowrap">
-                                        <div className="flex flex-col">
-                                            <span>{formatCurrency(interestEarned)}</span>
-                                            <span className="text-[10px] text-slate-500">@{loan.rate}%/mo</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm font-black text-brand-teal whitespace-nowrap">{formatCurrency(expectedTotalRepayment)}</td>
-                                    <td className="px-6 py-4 text-sm font-medium text-slate-300 whitespace-nowrap">{formatCurrency(actualDisbursement)}</td>
-                                    <td className="px-6 py-4 text-sm font-medium text-slate-300 whitespace-nowrap">
-                                        <div className="flex flex-col">
-                                            <span>{formatCurrency(monthlyRepayment)}</span>
-                                            <span className="text-[10px] text-slate-500">{loan.durationMonths} months</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm font-medium text-slate-300 whitespace-nowrap">{formatCurrency(totalPaid)}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-strong mb-1">{formatCurrency(loan.amountLeft)}</span>
-                                            <div className="h-1 w-20 bg-surface rounded-full overflow-hidden">
-                                                <div className="h-full bg-brand-teal rounded-full" style={{ width: `${pctPaid}%` }}></div>
+                                    <tr key={loan.id} className="group hover:bg-white/[0.02] transition-colors cursor-pointer">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <Link href={`/loans/${loan.id.replace('#', '')}`} className="text-brand-teal text-xs font-bold hover:underline">
+                                                {loan.id}
+                                            </Link>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-sm font-bold text-strong">{loan.name}</span>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 py-1 rounded-sm text-[10px] font-bold uppercase tracking-widest border ${loan.status === 'Active' ? 'bg-brand-teal/10 text-brand-teal border-brand-teal/20' :
-                                            loan.status === 'Paid Full' ? 'bg-primary/10 text-primary border-primary/20' :
-                                                'bg-red-500/10 text-red-500 border-red-500/20'
-                                            }`}>
-                                            {loan.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button className="text-slate-500 hover:text-strong transition-colors">
-                                            <span className="material-symbols-outlined">more_vert</span>
-                                        </button>
-                                    </td>
-                                </tr>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-medium text-slate-400 whitespace-nowrap">{loan.disburseDate}</td>
+                                        <td className="px-6 py-4 text-sm font-black text-strong whitespace-nowrap">{formatCurrency(loanApproved)}</td>
+                                        <td className="px-6 py-4 text-xs font-medium text-slate-300 whitespace-nowrap">{formatCurrency(oneOffFee)}</td>
+                                        <td className="px-6 py-4 text-xs font-medium text-slate-300 whitespace-nowrap">
+                                            <div className="flex flex-col">
+                                                <span>{formatCurrency(interestEarned)}</span>
+                                                <span className="text-[10px] text-slate-500">@{loan.rate}%/mo</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-black text-brand-teal whitespace-nowrap">{formatCurrency(expectedTotalRepayment)}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-slate-300 whitespace-nowrap">{formatCurrency(actualDisbursement)}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-slate-300 whitespace-nowrap">
+                                            <div className="flex flex-col">
+                                                <span>{formatCurrency(monthlyRepayment)}</span>
+                                                <span className="text-[10px] text-slate-500">{loan.durationMonths} months</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-medium text-slate-300 whitespace-nowrap">{formatCurrency(totalPaid)}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-strong mb-1">{formatCurrency(loan.amountLeft)}</span>
+                                                <div className="h-1 w-20 bg-surface rounded-full overflow-hidden">
+                                                    <div className="h-full bg-brand-teal rounded-full" style={{ width: `${pctPaid}%` }}></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 py-1 rounded-sm text-[10px] font-bold uppercase tracking-widest border ${loan.status === 'Active' ? 'bg-brand-teal/10 text-brand-teal border-brand-teal/20' :
+                                                loan.status === 'Paid Full' ? 'bg-primary/10 text-primary border-primary/20' :
+                                                    'bg-red-500/10 text-red-500 border-red-500/20'
+                                                }`}>
+                                                {loan.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end items-center gap-2">
+                                                {loan.status === 'Paid Full' && (
+                                                    <button 
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            if (confirm('Are you sure you want to delete this completed loan?')) {
+                                                                deleteLoan(loan.id);
+                                                            }
+                                                        }}
+                                                        className="text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 size-8 rounded-lg flex justify-center items-center transition-colors"
+                                                        title="Delete Loan"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                    </button>
+                                                )}
+                                                <button className="text-slate-500 hover:text-strong transition-colors mt-1">
+                                                    <span className="material-symbols-outlined">more_vert</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 );
                             })}
                         </tbody>
@@ -269,14 +307,13 @@ export default function LoansPage() {
                     <div className="p-4 border-t border-border-subtle flex justify-end">
                         <div className="flex gap-2">
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                <button 
+                                <button
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
-                                    className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
-                                        currentPage === page 
-                                        ? 'bg-brand-teal text-strong shadow-md' 
-                                        : 'bg-main border border-border-subtle text-slate-500 hover:text-strong'
-                                    }`}>
+                                    className={`px-3 py-1 rounded text-xs font-bold transition-colors ${currentPage === page
+                                            ? 'bg-brand-teal text-strong shadow-md'
+                                            : 'bg-main border border-border-subtle text-slate-500 hover:text-strong'
+                                        }`}>
                                     {page}
                                 </button>
                             ))}

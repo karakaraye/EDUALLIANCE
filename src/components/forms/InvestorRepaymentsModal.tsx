@@ -11,6 +11,28 @@ export const InvestorRepaymentsModal = ({ isOpen, onClose, investors }: Investor
     // Default to current month string "YYYY-MM"
     const currentMonthStr = new Date().toISOString().slice(0, 7);
     const [selectedMonth, setSelectedMonth] = useState(currentMonthStr);
+    
+    const [expenses, setExpenses] = useState<any[]>([]);
+    const [systemAdminId, setSystemAdminId] = useState<string>('');
+    const [processingId, setProcessingId] = useState<string | null>(null);
+
+    React.useEffect(() => {
+        if (isOpen) {
+            fetch('/api/expenses')
+                .then(res => res.json())
+                .then(data => setExpenses(Array.isArray(data) ? data : []))
+                .catch(err => console.error(err));
+            
+            fetch('/api/employees')
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        setSystemAdminId(data[0].id);
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+    }, [isOpen]);
 
     // Calculate payouts
     const payoutsList = useMemo(() => {
@@ -56,6 +78,44 @@ export const InvestorRepaymentsModal = ({ isOpen, onClose, investors }: Investor
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
+    };
+
+    const getPaymentDesc = (payout: any) => `Investor Payout - ${payout.investorName} (Payment ${payout.paymentNumber}/12, ${selectedMonth})`;
+
+    const isPaid = (payout: any) => {
+        const desc = getPaymentDesc(payout);
+        return expenses.some(exp => exp.desc === desc && exp.category === 'Investor Payout');
+    };
+
+    const handleMarkPaid = async (payout: any) => {
+        if (!systemAdminId) {
+            alert("No system administrator context found. Please ensure users exist in the system to act as authorizing managers.");
+            return;
+        }
+        setProcessingId(payout.id);
+        
+        try {
+            const res = await fetch('/api/expenses', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    description: getPaymentDesc(payout),
+                    amount: payout.amount,
+                    category: 'Investor Payout',
+                    date: new Date().toISOString(),
+                    managerId: systemAdminId
+                })
+            });
+
+            if (res.ok) {
+                const refreshedExp = await fetch('/api/expenses').then(r => r.json());
+                setExpenses(Array.isArray(refreshedExp) ? refreshedExp : []);
+            }
+        } catch (err) {
+            console.error("Failed to mark paid", err);
+        } finally {
+            setProcessingId(null);
+        }
     };
 
     const totalForMonth = payoutsList.reduce((sum, p) => sum + p.amount, 0);
@@ -118,6 +178,7 @@ export const InvestorRepaymentsModal = ({ isOpen, onClose, investors }: Investor
                                             <th className="px-5 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Investor</th>
                                             <th className="px-5 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Payment # (of 12)</th>
                                             <th className="px-5 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Amount Required</th>
+                                            <th className="px-5 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right w-[140px]">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border-subtle">
@@ -139,6 +200,26 @@ export const InvestorRepaymentsModal = ({ isOpen, onClose, investors }: Investor
                                                 </td>
                                                 <td className="px-5 py-4 text-right">
                                                     <span className="text-sm font-black text-strong">{formatCurrency(payout.amount)}</span>
+                                                </td>
+                                                <td className="px-5 py-4 text-right">
+                                                    {isPaid(payout) ? (
+                                                        <span className="flex items-center justify-end gap-1 text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/5 px-3 py-1.5 rounded-md w-max ml-auto">
+                                                            <span className="material-symbols-outlined text-[14px]">check_circle</span> Paid
+                                                        </span>
+                                                    ) : (
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); handleMarkPaid(payout); }}
+                                                            disabled={processingId === payout.id}
+                                                            className="flex items-center justify-end gap-1 text-[10px] font-bold text-brand-teal hover:text-white uppercase tracking-widest bg-brand-teal/10 hover:bg-brand-teal px-3 py-1.5 rounded-md transition-colors w-max ml-auto disabled:opacity-50"
+                                                        >
+                                                            {processingId === payout.id ? (
+                                                                <span className="material-symbols-outlined text-[14px] animate-spin">refresh</span>
+                                                            ) : (
+                                                                <span className="material-symbols-outlined text-[14px]">payments</span>
+                                                            )}
+                                                            {processingId === payout.id ? 'Processing' : 'Mark Paid'}
+                                                        </button>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}

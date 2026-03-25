@@ -47,7 +47,16 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                 const dueDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, startDate.getDate());
 
                 if (dueDate.getFullYear() === targetYear && dueDate.getMonth() === targetMonthIndex) {
-                    const isPaid = loan.repayments && loan.repayments[i] === true;
+                    const repaymentRecord = loan.repayments && loan.repayments[i];
+                    let amountPaid = 0;
+                    if (repaymentRecord === true) {
+                        amountPaid = monthlyPayment;
+                    } else if (typeof repaymentRecord === 'number') {
+                        amountPaid = repaymentRecord;
+                    }
+
+                    const isFullyPaid = amountPaid >= monthlyPayment - 0.01;
+                    const isPartiallyPaid = amountPaid > 0 && !isFullyPaid;
 
                     payouts.push({
                         id: `${loan.id}-${i}`,
@@ -57,8 +66,10 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                         dueDate: dueDate,
                         dayOfMonth: dueDate.getDate(),
                         amount: monthlyPayment,
+                        amountPaid: amountPaid,
                         originalId: loan.id,
-                        isPaid: isPaid
+                        isPaid: isFullyPaid,
+                        isPartiallyPaid: isPartiallyPaid
                     });
                 }
             }
@@ -74,7 +85,7 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
         return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
     };
 
-    const togglePaymentStatus = (loanId: string, paymentNum: number, currentStatus: boolean) => {
+    const updatePaymentAmount = (loanId: string, paymentNum: number, newAmountPaid: number) => {
         const savedLoans = localStorage.getItem('edualliance_loans');
         if (savedLoans) {
             try {
@@ -82,7 +93,12 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                 const updatedLoans = parsed.map((l: any) => {
                     if (l.id === loanId) {
                         const newRepayments = { ...(l.repayments || {}) };
-                        newRepayments[paymentNum] = !currentStatus;
+                        
+                        if (newAmountPaid <= 0) {
+                            delete newRepayments[paymentNum];
+                        } else {
+                            newRepayments[paymentNum] = newAmountPaid;
+                        }
                         
                         // Recalculate amountLeft and status
                         const amount = Number(l.amount);
@@ -95,10 +111,18 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                         let paidAmount = 0;
                         let paidCount = 0;
                         for (let i = 1; i <= duration; i++) {
-                            if (newRepayments[i] === true) {
-                                paidAmount += monthlyPayment;
+                            const rec = newRepayments[i];
+                            let instPaid = 0;
+                            if (rec === true) {
+                                instPaid = monthlyPayment;
                                 paidCount++;
+                            } else if (typeof rec === 'number') {
+                                instPaid = rec;
+                                if (instPaid >= monthlyPayment - 0.01) {
+                                    paidCount++;
+                                }
                             }
+                            paidAmount += instPaid;
                         }
                         
                         let newAmountLeft = expectedTotal - paidAmount;
@@ -107,7 +131,7 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                         let newStatus = l.status;
                         if (paidCount === duration || newAmountLeft === 0) {
                             newStatus = 'Paid Full';
-                        } else if (l.status === 'Paid Full' && paidCount < duration) {
+                        } else if (l.status === 'Paid Full' && newAmountLeft > 0) {
                             newStatus = 'Active';
                         }
 
@@ -126,13 +150,39 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                 const ref = loans.find(l => l.id === loanId);
                 if (ref) {
                     ref.repayments = ref.repayments || {};
-                    ref.repayments[paymentNum] = !currentStatus;
+                    if (newAmountPaid <= 0) {
+                        delete ref.repayments[paymentNum];
+                    } else {
+                        ref.repayments[paymentNum] = newAmountPaid;
+                    }
                 }
 
                 setRefreshTrigger(prev => prev + 1);
                 if (onLoansUpdated) onLoansUpdated();
             } catch (e) {
-                console.error("Failed to update payment status");
+                console.error("Failed to update payment amount:", e);
+            }
+        }
+    };
+
+    const handlePaymentClick = (payout: any) => {
+        if (payout.isPaid) {
+            if (confirm("Are you sure you want to undo this full payment?")) {
+                updatePaymentAmount(payout.originalId, payout.paymentNumber, 0);
+            }
+        } else {
+            const defaultAmount = payout.amount - payout.amountPaid;
+            const input = window.prompt(`Enter payment amount (Expected: ${formatCurrency(defaultAmount)}):`, defaultAmount.toString());
+            if (input !== null) {
+                const num = parseFloat(input);
+                if (!isNaN(num) && num > 0) {
+                    const newTotalPaid = payout.amountPaid + num;
+                    updatePaymentAmount(payout.originalId, payout.paymentNumber, newTotalPaid);
+                } else if (num === 0) {
+                    updatePaymentAmount(payout.originalId, payout.paymentNumber, 0);
+                } else {
+                    alert("Invalid amount entered.");
+                }
             }
         }
     };
@@ -202,9 +252,9 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                                     </thead>
                                     <tbody className="divide-y divide-border-subtle">
                                         {payoutsList.map((payout) => (
-                                            <tr key={payout.id} className={`hover:bg-white/[0.02] ${payout.isPaid ? 'opacity-50' : ''}`}>
+                                            <tr key={payout.id} className={`hover:bg-white/[0.02] ${payout.isPaid ? 'opacity-50' : payout.isPartiallyPaid ? 'bg-orange-500/[0.02]' : ''}`}>
                                                 <td className="px-5 py-4">
-                                                    <div className={`flex flex-col items-center justify-center size-10 border rounded-lg ${payout.isPaid ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal'}`}>
+                                                    <div className={`flex flex-col items-center justify-center size-10 border rounded-lg ${payout.isPaid ? 'bg-green-500/10 border-green-500/20 text-green-500' : payout.isPartiallyPaid ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal'}`}>
                                                         {payout.isPaid ? (
                                                             <span className="material-symbols-outlined text-[20px]">check</span>
                                                         ) : (
@@ -222,20 +272,30 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                                                     </span>
                                                 </td>
                                                 <td className="px-5 py-4 text-right">
-                                                    <span className={`text-sm font-black ${payout.isPaid ? 'text-green-500 line-through' : 'text-strong'}`}>
-                                                        {formatCurrency(payout.amount)}
-                                                    </span>
+                                                    <div className="flex flex-col items-end">
+                                                        <span className={`text-sm font-black ${payout.isPaid ? 'text-green-500 line-through' : payout.isPartiallyPaid ? 'text-orange-400' : 'text-strong'}`}>
+                                                            {formatCurrency(payout.amountPaid)} / {formatCurrency(payout.amount)}
+                                                        </span>
+                                                        {payout.isPartiallyPaid && (
+                                                            <span className="text-[10px] text-orange-400 font-bold uppercase tracking-widest mt-1">Partial</span>
+                                                        )}
+                                                        {payout.isPaid && (
+                                                            <span className="text-[10px] text-green-500 font-bold uppercase tracking-widest mt-1">Paid</span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="px-5 py-4 text-center no-print">
                                                     <button 
-                                                        onClick={() => togglePaymentStatus(payout.originalId, payout.paymentNumber, payout.isPaid)}
+                                                        onClick={() => handlePaymentClick(payout)}
                                                         className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
                                                             payout.isPaid 
                                                             ? 'bg-transparent border border-slate-600 text-slate-500 hover:text-strong hover:border-slate-400' 
+                                                            : payout.isPartiallyPaid
+                                                            ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500 hover:text-white'
                                                             : 'bg-brand-teal/10 text-brand-teal border border-brand-teal/20 hover:bg-brand-teal hover:text-strong'
                                                         }`}
                                                     >
-                                                        {payout.isPaid ? 'Undo' : 'Mark Paid'}
+                                                        {payout.isPaid ? 'Undo' : payout.isPartiallyPaid ? 'Pay More' : 'Pay'}
                                                     </button>
                                                 </td>
                                             </tr>

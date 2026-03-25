@@ -24,7 +24,7 @@ export default function ReportsPage() {
         totalInvestorsPayout: 0
     });
     const [apiLedger, setApiLedger] = useState<LedgerEntry[]>([]);
-    
+
     // Client-side loans from localStorage
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [localLoans, setLocalLoans] = useState<any[]>([]);
@@ -62,19 +62,14 @@ export default function ReportsPage() {
 
     // Combine Data
     const combinedData = useMemo(() => {
-        let totalLoanDisbursed = 0;
-        let totalExpectedLoanRevenue = 0;
         const loanLedger: LedgerEntry[] = [];
 
         localLoans.forEach(loan => {
             const amount = Number(loan.amount);
             const rate = Number(loan.rate);
             const duration = Number(loan.durationMonths);
-            
+
             const expectedReturn = amount + (amount * (rate / 100) * duration);
-            
-            totalLoanDisbursed += amount;
-            totalExpectedLoanRevenue += expectedReturn;
 
             loanLedger.push({
                 id: `LOAN-${loan.id}`,
@@ -101,6 +96,9 @@ export default function ReportsPage() {
         });
 
         // Recalculate KPIs based strictly on the filtered ledger
+        let totalLoanDisbursed = 0;
+        let totalExpectedLoanRevenue = 0;
+        
         filteredLedger.forEach(entry => {
             if (entry.type === 'Loan') {
                 totalLoanDisbursed += entry.amount;
@@ -159,21 +157,21 @@ export default function ReportsPage() {
                         <div className="flex items-center gap-2 bg-panel border border-border-subtle rounded-lg px-3 py-1.5 h-10 overflow-hidden">
                             <span className="material-symbols-outlined text-slate-500 text-[18px]">calendar_today</span>
                             <div className="flex items-center gap-2">
-                                <input 
-                                    type="date" 
+                                <input
+                                    type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
                                     className="bg-transparent text-sm text-strong focus:outline-none w-32"
                                 />
                                 <span className="text-slate-500 text-xs">to</span>
-                                <input 
-                                    type="date" 
+                                <input
+                                    type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
                                     className="bg-transparent text-sm text-strong focus:outline-none w-32"
                                 />
                                 {(startDate || endDate) && (
-                                    <button 
+                                    <button
                                         onClick={() => { setStartDate(''); setEndDate(''); }}
                                         className="text-slate-500 hover:text-strong"
                                         title="Clear filter"
@@ -183,7 +181,7 @@ export default function ReportsPage() {
                                 )}
                             </div>
                         </div>
-                        <button 
+                        <button
                             onClick={handlePrint}
                             className="flex items-center justify-center gap-2 px-5 rounded-lg border border-border-subtle text-slate-300 text-xs font-bold hover:bg-white/5 transition-all h-10"
                         >
@@ -240,7 +238,7 @@ export default function ReportsPage() {
                             Master Financial Ledger
                         </h3>
                     </div>
-                    
+
                     {loading ? (
                         <div className="flex justify-center items-center py-20 text-brand-teal">
                             <span className="material-symbols-outlined animate-spin text-4xl">refresh</span>
@@ -272,12 +270,11 @@ export default function ReportsPage() {
                                                 <td className="px-6 py-4 text-xs text-slate-400">{formatDate(entry.date)}</td>
                                                 <td className="px-6 py-4 text-xs font-mono text-slate-500">{entry.id}</td>
                                                 <td className="px-6 py-4">
-                                                    <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest border ${
-                                                        entry.type === 'Loan' ? 'bg-brand-teal/10 text-brand-teal border-brand-teal/20' :
+                                                    <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest border ${entry.type === 'Loan' ? 'bg-brand-teal/10 text-brand-teal border-brand-teal/20' :
                                                         entry.type === 'Expense' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
-                                                        entry.type === 'Payroll' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
-                                                        'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                                                    }`}>
+                                                            entry.type === 'Payroll' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
+                                                                'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                                                        }`}>
                                                         {entry.type}
                                                     </span>
                                                 </td>
