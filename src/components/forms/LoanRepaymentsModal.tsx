@@ -12,6 +12,7 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
     // Default to current month string "YYYY-MM"
     const currentMonthStr = new Date().toISOString().slice(0, 7);
     const [selectedMonth, setSelectedMonth] = useState(currentMonthStr);
+    const [selectedDay, setSelectedDay] = useState<string>('All');
     
     // Force re-render when a payment is marked
     const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -76,8 +77,15 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
         });
 
         // Sort by day of the month sequentially (1 to 31)
-        return payouts.sort((a, b) => a.dayOfMonth - b.dayOfMonth);
-    }, [loans, selectedMonth, refreshTrigger]);
+        let finalPayouts = payouts.sort((a, b) => a.dayOfMonth - b.dayOfMonth);
+
+        if (selectedDay !== 'All') {
+            const dayNum = parseInt(selectedDay, 10);
+            finalPayouts = finalPayouts.filter(p => p.dayOfMonth === dayNum);
+        }
+
+        return finalPayouts;
+    }, [loans, selectedMonth, selectedDay, refreshTrigger]);
 
     if (!isOpen) return null;
 
@@ -216,14 +224,32 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                     
                     {/* Controls & Summary */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-main/50 p-4 border border-border-subtle rounded-xl">
-                        <div className="flex flex-col gap-1.5 w-full md:w-auto">
-                            <label className="text-xs font-bold text-slate-400">Select Month & Year</label>
-                            <input 
-                                type="month" 
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(e.target.value)}
-                                className="h-11 px-4 bg-surface border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors"
-                            />
+                        <div className="flex gap-4 w-full md:w-auto">
+                            <div className="flex flex-col gap-1.5 w-full md:w-auto">
+                                <label className="text-xs font-bold text-slate-400">Select Month & Year</label>
+                                <input 
+                                    type="month" 
+                                    value={selectedMonth}
+                                    onChange={(e) => setSelectedMonth(e.target.value)}
+                                    className="h-11 px-4 bg-surface border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1.5 w-full md:w-auto">
+                                <label className="text-xs font-bold text-slate-400">Filter by Day</label>
+                                <div className="relative">
+                                    <select 
+                                        value={selectedDay}
+                                        onChange={(e) => setSelectedDay(e.target.value)}
+                                        className="h-11 px-4 pr-10 bg-surface border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors appearance-none min-w-[120px]"
+                                    >
+                                        <option value="All">All Days</option>
+                                        {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                                            <option key={day} value={day}>Day {day}</option>
+                                        ))}
+                                    </select>
+                                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-[20px]">expand_more</span>
+                                </div>
+                            </div>
                         </div>
                         <div className="flex flex-col md:items-end">
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Expected Collection</span>

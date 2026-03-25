@@ -10,6 +10,7 @@ export default function NewLoanPage() {
 
     // Form State
     const [name, setName] = useState<string>('');
+    const [loanId, setLoanId] = useState<string>('');
     const [principal, setPrincipal] = useState<number>(5000);
     const [rate, setRate] = useState<number>(4);
     const [duration, setDuration] = useState<number>(12);
@@ -39,13 +40,13 @@ export default function NewLoanPage() {
             }
         }
 
-        // Generate a random ID and format today's date
-        const newId = `#L-${Math.floor(Math.random() * 9000 + 1000)}`;
+        // Determine the ID (use custom or generate fallback)
+        const finalLoanId = loanId.trim() || `#L-${Math.floor(Math.random() * 9000 + 1000)}`;
         const disburseDate = new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 
         // Create the new loan record
         const newLoan = {
-            id: newId,
+            id: finalLoanId,
             name: name || 'New Borrower',
             image: `https://i.pravatar.cc/150?u=${Math.random()}`,
             amount: principal,
@@ -106,8 +107,14 @@ export default function NewLoanPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-5">
                                     <div className="flex flex-col gap-1.5">
-                                        <label className="text-xs font-bold text-slate-400 ml-1">National ID / Passport</label>
-                                        <input type="text" placeholder="000-0000-00" className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors" />
+                                        <label className="text-xs font-bold text-slate-400 ml-1">Loan ID</label>
+                                        <input 
+                                            type="text" 
+                                            placeholder="e.g. L-1002" 
+                                            value={loanId}
+                                            onChange={(e) => setLoanId(e.target.value)}
+                                            className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors" 
+                                        />
                                     </div>
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-xs font-bold text-slate-400 ml-1">Contact Number</label>
