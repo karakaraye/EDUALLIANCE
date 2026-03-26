@@ -13,7 +13,7 @@ export interface SalaryBreakdown {
 export const calculatePayroll = (
     baseSalary: number, 
     allowances: { housing?: number; transport?: number; lunch?: number; wardrobe?: number; education?: number } = {},
-    payePercentage: number = 0
+    payeAmount: number = 0
 ): SalaryBreakdown => {
     
     const housing = Number(allowances.housing) || 0;
@@ -28,9 +28,8 @@ export const calculatePayroll = (
     // Pension = 8% of (Basic + Transport + Housing)
     const pension = Math.round(0.08 * (baseSalary + transport + housing));
     
-    // PAYE = X% of (Basic + All Allowances - Pension)
-    const taxableIncome = Math.max(0, gross - pension);
-    const paye = Math.round((payePercentage / 100) * taxableIncome);
+    // PAYE is now manual flat figure
+    const paye = Math.round(payeAmount);
 
     const totalDeductions = pension + paye;
     const net = gross - totalDeductions;

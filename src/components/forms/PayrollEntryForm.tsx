@@ -23,7 +23,7 @@ export const PayrollEntryForm: React.FC<PayrollEntryFormProps> = ({ onClose, onS
         wardrobe: 0,
         education: 0
     });
-    const [payePercentage, setPayePercentage] = useState<string>('5');
+    const [payeAmount, setPayeAmount] = useState<string>('0');
     
     const [bankName, setBankName] = useState('');
     const [accountNumber, setAccountNumber] = useState('');
@@ -125,7 +125,7 @@ export const PayrollEntryForm: React.FC<PayrollEntryFormProps> = ({ onClose, onS
         const result = calculatePayroll(
             Number(baseSalary), 
             allowances,
-            Number(payePercentage)
+            Number(payeAmount)
         );
         setBreakdown(result);
     };
@@ -267,18 +267,17 @@ export const PayrollEntryForm: React.FC<PayrollEntryFormProps> = ({ onClose, onS
                 <div className="pt-2 border-t border-border-subtle flex flex-col gap-3">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Taxation</span>
                     <Input
-                        label="P.A.Y.E Percentage (%)"
+                        label="P.A.Y.E ₦"
                         type="number"
-                        step="0.1"
-                        value={payePercentage}
-                        onChange={(e) => setPayePercentage(e.target.value)}
+                        value={payeAmount}
+                        onChange={(e) => setPayeAmount(e.target.value)}
                         required
                     />
                     <div className="bg-brand-teal/5 border border-brand-teal/20 rounded-lg p-3 mt-2">
                         <p className="text-brand-teal text-[10px] font-bold uppercase tracking-widest mb-1">Auto-Calc Engine Notice</p>
                         <p className="text-slate-400 text-xs leading-relaxed">
                             Pension is strictly computed as 8% of (Basic + Transport + Housing). <br/>
-                            PAYE is computed as {payePercentage || '0'}% of (Gross - Pension).
+                            PAYE is a direct absolute deduction based on your specific entry above.
                         </p>
                     </div>
                 </div>
