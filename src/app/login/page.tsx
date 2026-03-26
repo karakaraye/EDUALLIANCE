@@ -4,13 +4,41 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 
 export default function LoginPage() {
-    // Mock login handler
+    const [selectedRole, setSelectedRole] = useState<string | null>(null);
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
     const handleLogin = (role: string) => {
         localStorage.setItem('edualliance_role', role);
         if (role === 'ADMIN') window.location.href = '/';
         else if (role === 'LOANS') window.location.href = '/loans';
         else if (role === 'INVESTORS') window.location.href = '/investors';
         else if (role === 'FINANCE') window.location.href = '/expenses';
+    };
+
+    const handlePasswordSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        
+        const credentials: Record<string, string> = {
+            'ADMIN': 'admin123',
+            'LOANS': 'loans123',
+            'INVESTORS': 'investors123',
+            'FINANCE': 'finance123'
+        };
+
+        if (selectedRole && password === credentials[selectedRole]) {
+            handleLogin(selectedRole);
+        } else {
+            setError('Incorrect password. Please try again.');
+        }
+    };
+
+    const roleDetails: Record<string, { title: string, subtitle: string, icon: string, color: string, bg: string }> = {
+        'ADMIN': { title: 'Administrator', subtitle: 'Full System Access', icon: 'admin_panel_settings', color: 'text-primary', bg: 'bg-primary/20' },
+        'LOANS': { title: 'Loan Officer', subtitle: 'Loans Module Only', icon: 'payments', color: 'text-brand-teal', bg: 'bg-brand-teal/20' },
+        'INVESTORS': { title: 'Investor Rep', subtitle: 'Investors Module Only', icon: 'handshake', color: 'text-purple-400', bg: 'bg-purple-500/20' },
+        'FINANCE': { title: 'Finance Dept', subtitle: 'Payroll & Expenses', icon: 'receipt_long', color: 'text-yellow-500', bg: 'bg-yellow-500/20' }
     };
 
     return (
@@ -56,60 +84,77 @@ export default function LoginPage() {
                             <p className="text-slate-500 text-sm">Access the Edualliance Financial System.</p>
                         </div>
 
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={() => handleLogin('ADMIN')}
-                                className="w-full h-12 bg-slate-800 border border-slate-700 hover:border-brand-teal hover:bg-slate-800/80 text-strong font-bold rounded-lg transition-all flex items-center gap-3 px-4 group"
-                            >
-                                <div className="size-8 rounded bg-primary/20 text-primary flex items-center justify-center shrink-0">
-                                    <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
-                                </div>
-                                <div className="flex flex-col items-start leading-tight">
-                                    <span>Administrator</span>
-                                    <span className="text-[10px] text-slate-400 font-normal">Full System Access</span>
-                                </div>
-                                <span className="material-symbols-outlined ml-auto text-slate-500 group-hover:text-brand-teal transition-colors">arrow_forward</span>
-                            </button>
-                            <button
-                                onClick={() => handleLogin('LOANS')}
-                                className="w-full h-12 bg-slate-800 border border-slate-700 hover:border-brand-teal hover:bg-slate-800/80 text-strong font-bold rounded-lg transition-all flex items-center gap-3 px-4 group"
-                            >
-                                <div className="size-8 rounded bg-brand-teal/20 text-brand-teal flex items-center justify-center shrink-0">
-                                    <span className="material-symbols-outlined text-[16px]">payments</span>
-                                </div>
-                                <div className="flex flex-col items-start leading-tight">
-                                    <span>Loan Officer</span>
-                                    <span className="text-[10px] text-slate-400 font-normal">Loans Module Only</span>
-                                </div>
-                                <span className="material-symbols-outlined ml-auto text-slate-500 group-hover:text-brand-teal transition-colors">arrow_forward</span>
-                            </button>
-                            <button
-                                onClick={() => handleLogin('INVESTORS')}
-                                className="w-full h-12 bg-slate-800 border border-slate-700 hover:border-brand-teal hover:bg-slate-800/80 text-strong font-bold rounded-lg transition-all flex items-center gap-3 px-4 group"
-                            >
-                                <div className="size-8 rounded bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
-                                    <span className="material-symbols-outlined text-[16px]">handshake</span>
-                                </div>
-                                <div className="flex flex-col items-start leading-tight">
-                                    <span>Investor Rep</span>
-                                    <span className="text-[10px] text-slate-400 font-normal">Investors Module Only</span>
-                                </div>
-                                <span className="material-symbols-outlined ml-auto text-slate-500 group-hover:text-brand-teal transition-colors">arrow_forward</span>
-                            </button>
-                            <button
-                                onClick={() => handleLogin('FINANCE')}
-                                className="w-full h-12 bg-slate-800 border border-slate-700 hover:border-brand-teal hover:bg-slate-800/80 text-strong font-bold rounded-lg transition-all flex items-center gap-3 px-4 group"
-                            >
-                                <div className="size-8 rounded bg-yellow-500/20 text-yellow-500 flex items-center justify-center shrink-0">
-                                    <span className="material-symbols-outlined text-[16px]">receipt_long</span>
-                                </div>
-                                <div className="flex flex-col items-start leading-tight">
-                                    <span>Finance Dept</span>
-                                    <span className="text-[10px] text-slate-400 font-normal">Payroll & Expenses Only</span>
-                                </div>
-                                <span className="material-symbols-outlined ml-auto text-slate-500 group-hover:text-brand-teal transition-colors">arrow_forward</span>
-                            </button>
-                        </div>
+                        {!selectedRole ? (
+                            <div className="flex flex-col gap-3">
+                                {Object.keys(roleDetails).map((role) => {
+                                    const details = roleDetails[role];
+                                    return (
+                                        <button
+                                            key={role}
+                                            onClick={() => { setSelectedRole(role); setError(''); setPassword(''); }}
+                                            className="w-full h-12 bg-slate-800 border border-slate-700 hover:border-brand-teal hover:bg-slate-800/80 text-strong font-bold rounded-lg transition-all flex items-center gap-3 px-4 group"
+                                        >
+                                            <div className={`size-8 rounded ${details.bg} ${details.color} flex items-center justify-center shrink-0`}>
+                                                <span className="material-symbols-outlined text-[16px]">{details.icon}</span>
+                                            </div>
+                                            <div className="flex flex-col items-start leading-tight">
+                                                <span>{details.title}</span>
+                                                <span className="text-[10px] text-slate-400 font-normal">{details.subtitle}</span>
+                                            </div>
+                                            <span className="material-symbols-outlined ml-auto text-slate-500 group-hover:text-brand-teal transition-colors">arrow_forward</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                                <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-3 p-3 bg-white/5 border border-border-subtle rounded-xl mb-2">
+                                        <div className={`size-10 rounded-lg ${roleDetails[selectedRole].bg} ${roleDetails[selectedRole].color} flex items-center justify-center shrink-0`}>
+                                            <span className="material-symbols-outlined">{roleDetails[selectedRole].icon}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">Logging in as</span>
+                                            <span className="text-sm font-bold text-strong">{roleDetails[selectedRole].title}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    {error && (
+                                        <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold rounded-lg flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-[16px]">error</span> {error}
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold text-slate-400">Password</label>
+                                        <input 
+                                            type="password" 
+                                            required
+                                            autoFocus
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full h-12 px-4 bg-slate-800 border border-slate-700 rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors"
+                                            placeholder="Enter portal password"
+                                        />
+                                    </div>
+
+                                    <button 
+                                        type="submit"
+                                        className="w-full h-12 mt-2 bg-brand-teal hover:bg-teal-600 text-strong font-bold rounded-lg transition-all shadow-lg shadow-teal-900/20 flex items-center justify-center gap-2"
+                                    >
+                                        Authenticate <span className="material-symbols-outlined text-[18px]">lock_open</span>
+                                    </button>
+
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setSelectedRole(null)}
+                                        className="text-xs text-slate-500 hover:text-strong font-bold mt-2 transition-colors"
+                                    >
+                                        ← Select a different role
+                                    </button>
+                                </form>
+                            </div>
+                        )}
 
                         <div className="mt-8 pt-6 border-t border-border-subtle flex flex-col items-center gap-2">
                             <div className="flex items-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-widest">

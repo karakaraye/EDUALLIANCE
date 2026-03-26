@@ -153,6 +153,7 @@ export function ExpenseModal({ isOpen, onClose, onSuccess }: ExpenseModalProps) 
                             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Date</label>
                             <input 
                                 type="date" 
+                                min="2022-01-01"
                                 required
                                 value={date}
                                 onChange={e => setDate(e.target.value)}

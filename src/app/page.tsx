@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
 
 export default function DashboardPage() {
@@ -18,6 +19,7 @@ export default function DashboardPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [apiLedger, setApiLedger] = useState<any[]>([]);
     const [timeFrame, setTimeFrame] = useState<number>(6);
+    const [ledgerFilter, setLedgerFilter] = useState('All');
 
     useEffect(() => {
         setIsMounted(true);
@@ -84,7 +86,42 @@ export default function DashboardPage() {
 
     const fullLedger = [...apiLedger, ...loanLedger].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     const recentActivity = fullLedger.slice(0, 4);
-    const recentLedger = fullLedger.slice(0, 6);
+
+    const filteredLedger = fullLedger.filter(t => {
+        if (ledgerFilter === 'All') return true;
+        if (['Loan', 'Expense', 'Payroll', 'Income'].includes(ledgerFilter)) return t.type === ledgerFilter;
+        return t.status === ledgerFilter || t.status === ledgerFilter.toUpperCase();
+    }).slice(0, 20); // Expand from 6 to 20 so it feels like a real table
+
+    const handleExportCSV = () => {
+        if (filteredLedger.length === 0) return alert("No records to export.");
+        
+        const headers = ['ID Reference', 'Description', 'Category', 'Type', 'Amount (NGN)', 'Status', 'Timestamp'];
+        const csvRows = [headers.join(',')];
+        
+        filteredLedger.forEach(txn => {
+            const row = [
+                `"${txn.id}"`,
+                `"${txn.description.replace(/"/g, '""')}"`,
+                `"${txn.category}"`,
+                `"${txn.type}"`,
+                `"${txn.amount}"`,
+                `"${txn.status}"`,
+                `"${new Date(txn.date).toLocaleString('en-US')}"`
+            ];
+            csvRows.push(row.join(','));
+        });
+        
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', `Edualliance_Ledger_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
 
     // Financial Dynamics Calculation
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -279,9 +316,11 @@ export default function DashboardPage() {
               )}
             </div>
             <div className="p-6 bg-main/30 border-t border-border-subtle mt-auto">
-              <button className="w-full py-2.5 rounded-lg border border-border-subtle text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-strong hover:bg-white/5 transition-all">
-                Full Activity Report
-              </button>
+              <Link href="/reports">
+                  <button className="w-full py-2.5 rounded-lg border border-border-subtle text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-strong hover:bg-white/5 transition-all">
+                    Full Activity Report
+                  </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -293,11 +332,23 @@ export default function DashboardPage() {
               <h3 className="text-strong text-xl font-bold tracking-tight">Ledger Transactions</h3>
               <span className="px-3 py-1 bg-white/5 border border-border-subtle rounded-full text-[10px] font-black text-slate-500 uppercase tracking-widest">Real-time</span>
             </div>
-            <div className="flex gap-3">
-              <button className="p-2.5 bg-panel hover:bg-white/5 border border-border-subtle rounded-lg text-slate-400 transition-all">
-                <span className="material-symbols-outlined text-[20px]">tune</span>
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-panel hover:bg-white/5 border border-border-subtle rounded-lg text-slate-300 text-xs font-bold transition-all">
+            <div className="flex gap-3 relative">
+              <select 
+                  value={ledgerFilter}
+                  onChange={(e) => setLedgerFilter(e.target.value)}
+                  className="flex items-center gap-2 px-3 py-2.5 bg-panel hover:bg-white/5 border border-border-subtle rounded-lg text-slate-300 text-xs font-bold transition-all appearance-none cursor-pointer outline-none focus:border-brand-teal"
+              >
+                  <option value="All">All Transactions</option>
+                  <option value="Loan">Loans Only</option>
+                  <option value="Expense">Expenses Only</option>
+                  <option value="Payroll">Payroll Only</option>
+                  <option value="Draft">Draft Status</option>
+                  <option value="Pending">Pending Status</option>
+              </select>
+              <button 
+                  onClick={handleExportCSV}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-panel hover:bg-white/5 border border-border-subtle rounded-lg text-slate-300 text-xs font-bold transition-all"
+              >
                 <span className="material-symbols-outlined text-[18px]">download</span> Export CSV
               </button>
             </div>
@@ -315,14 +366,14 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-subtle">
-                {recentLedger.length === 0 ? (
+                {filteredLedger.length === 0 ? (
                     <tr>
                         <td colSpan={6} className="px-8 py-10 text-center text-slate-500 text-sm font-bold">
-                            No ledger transactions available. Check the Reports module.
+                            No ledger transactions available matching this filter.
                         </td>
                     </tr>
                 ) : (
-                    recentLedger.map((txn, i) => (
+                    filteredLedger.map((txn, i) => (
                         <tr key={`${txn.id}-${i}`} className="row-hover-effect group cursor-pointer">
                           <td className="px-8 py-6 text-xs font-mono text-slate-600">{txn.id}</td>
                           <td className="px-8 py-6">

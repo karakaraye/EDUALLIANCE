@@ -12,6 +12,10 @@ export default function ExpensesPage() {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeReceiptUrl, setActiveReceiptUrl] = useState<string | null>(null);
+    
+    const currentMonthStr = new Date().toISOString().slice(0, 7);
+    const [selectedMonth, setSelectedMonth] = useState(currentMonthStr);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const fetchExpenses = () => {
         setLoading(true);
@@ -68,9 +72,11 @@ export default function ExpensesPage() {
 
     // Derived Metrics
     const { totalMonthly, pendingCount, investorPayoutsMonth, unpaidLiabilities } = useMemo(() => {
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
+        if (!selectedMonth) return { totalMonthly: 0, pendingCount: 0, investorPayoutsMonth: 0, unpaidLiabilities: 0 };
+        
+        const [yearStr, monthStr] = selectedMonth.split('-');
+        const currentYear = parseInt(yearStr, 10);
+        const currentMonth = parseInt(monthStr, 10) - 1;
 
         let monthSum = 0;
         let pCount = 0;
@@ -114,7 +120,33 @@ export default function ExpensesPage() {
             investorPayoutsMonth: investorSum,
             unpaidLiabilities
         };
-    }, [expenses, investors]);
+    }, [expenses, investors, selectedMonth]);
+
+    const filteredExpenses = useMemo(() => {
+        let result = expenses;
+        if (selectedMonth) {
+            const [yearStr, monthStr] = selectedMonth.split('-');
+            const targetYear = parseInt(yearStr, 10);
+            const targetMonth = parseInt(monthStr, 10) - 1;
+
+            result = result.filter(exp => {
+                const expDate = new Date(exp.rawDate);
+                return expDate.getFullYear() === targetYear && expDate.getMonth() === targetMonth;
+            });
+        }
+        
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter(exp => 
+                exp.desc?.toLowerCase().includes(query) || 
+                exp.category?.toLowerCase().includes(query) ||
+                exp.managerName?.toLowerCase().includes(query) ||
+                exp.id?.toLowerCase().includes(query)
+            );
+        }
+        
+        return result;
+    }, [expenses, selectedMonth, searchQuery]);
 
     // Hardcoded demo budget max for visualization
     const BUDGET_CAP = 5000000; 
@@ -214,9 +246,26 @@ export default function ExpensesPage() {
                 <div className="bg-panel border border-border-subtle rounded-2xl overflow-hidden min-h-[400px]">
                     <div className="p-6 border-b border-border-subtle flex justify-between items-center bg-main/20">
                         <h3 className="text-base font-bold text-strong">Recent Transactions</h3>
-                        <div className="flex gap-2">
-                            <button className="text-slate-500 hover:text-strong transition-colors"><span className="material-symbols-outlined">search</span></button>
-                            <button className="text-slate-500 hover:text-strong transition-colors"><span className="material-symbols-outlined">tune</span></button>
+                        <div className="flex gap-4 items-center">
+                            <div className="flex items-center gap-2">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest hidden sm:block">Filter Period</label>
+                                <input 
+                                    type="month" 
+                                    value={selectedMonth}
+                                    onChange={(e) => setSelectedMonth(e.target.value)}
+                                    className="h-9 px-3 bg-surface border border-border-subtle rounded text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors"
+                                />
+                            </div>
+                            <div className="relative flex items-center">
+                                <span className="material-symbols-outlined absolute left-3 text-slate-500 text-[18px]">search</span>
+                                <input 
+                                    type="text" 
+                                    placeholder="Search transactions..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="h-9 pl-9 pr-3 w-48 sm:w-64 bg-surface border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:ring-1 focus:ring-brand-teal focus:outline-none transition-all placeholder:text-slate-600 focus:w-72"
+                                />
+                            </div>
                         </div>
                     </div>
                     
@@ -239,14 +288,14 @@ export default function ExpensesPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border-subtle">
-                                {expenses.length === 0 ? (
+                                {filteredExpenses.length === 0 ? (
                                     <tr>
                                         <td colSpan={7} className="px-6 py-8 text-center text-slate-500 text-sm font-bold">
-                                            No expenses logged across the system yet.
+                                            No expenses logged for this specific period.
                                         </td>
                                     </tr>
                                 ) : (
-                                    expenses.map((exp) => (
+                                    filteredExpenses.map((exp) => (
                                         <tr key={exp.id} className="hover:bg-white/[0.02] transition-colors cursor-pointer">
                                             <td className="px-6 py-4 text-xs font-mono text-slate-500">{exp.id}</td>
                                             <td className="px-6 py-4 text-sm font-bold text-strong max-w-[200px] truncate">{exp.desc}</td>

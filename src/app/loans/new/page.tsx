@@ -14,6 +14,7 @@ export default function NewLoanPage() {
     const [principal, setPrincipal] = useState<number>(5000);
     const [rate, setRate] = useState<number>(4);
     const [duration, setDuration] = useState<number>(12);
+    const [disbursementDate, setDisbursementDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
     // Dynamic Calculations
     const interestEarned = principal * (rate / 100) * duration;
@@ -41,8 +42,10 @@ export default function NewLoanPage() {
         }
 
         // Determine the ID (use custom or generate fallback)
-        const finalLoanId = loanId.trim() || `#L-${Math.floor(Math.random() * 9000 + 1000)}`;
-        const disburseDate = new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+        const finalLoanId = loanId.trim() ? `LN/ED/${loanId.trim()}` : `LN/ED/${Math.floor(Math.random() * 9000 + 1000)}`;
+        
+        const dateObj = new Date(disbursementDate);
+        const disburseDateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 
         // Create the new loan record
         const newLoan = {
@@ -54,7 +57,7 @@ export default function NewLoanPage() {
             durationMonths: duration,
             amountLeft: expectedTotalRepayment, // Initially, they owe the full expected amount
             status: 'Active',
-            disburseDate: disburseDate
+            disburseDate: disburseDateStr
         };
 
         // Add to the front of the list
@@ -108,13 +111,16 @@ export default function NewLoanPage() {
                                 <div className="grid grid-cols-2 gap-5">
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-xs font-bold text-slate-400 ml-1">Loan ID</label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="e.g. L-1002" 
-                                            value={loanId}
-                                            onChange={(e) => setLoanId(e.target.value)}
-                                            className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors" 
-                                        />
+                                        <div className="flex">
+                                            <span className="flex items-center justify-center px-4 bg-surface border border-r-0 border-border-subtle rounded-l-lg text-slate-400 font-bold text-sm tracking-widest">LN/ED/</span>
+                                            <input 
+                                                type="text" 
+                                                placeholder="1002" 
+                                                value={loanId}
+                                                onChange={(e) => setLoanId(e.target.value)}
+                                                className="w-full h-11 px-3 bg-main border border-border-subtle rounded-r-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors" 
+                                            />
+                                        </div>
                                     </div>
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-xs font-bold text-slate-400 ml-1">Contact Number</label>
@@ -147,22 +153,34 @@ export default function NewLoanPage() {
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-xs font-bold text-slate-400 ml-1">Annual Interest Rate (%)</label>
+                                    <label className="text-xs font-bold text-slate-400 ml-1">Disbursement Date</label>
                                     <input 
-                                        type="number" 
-                                        value={rate} 
-                                        onChange={(e) => setRate(Number(e.target.value))}
+                                        type="date" 
+                                        min="2022-01-01"
+                                        value={disbursementDate} 
+                                        onChange={(e) => setDisbursementDate(e.target.value)}
                                         className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-strong focus:border-primary focus:outline-none transition-colors" 
                                     />
                                 </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-xs font-bold text-slate-400 ml-1">Duration (Months)</label>
-                                    <input 
-                                        type="number" 
-                                        value={duration} 
-                                        onChange={(e) => setDuration(Number(e.target.value))}
-                                        className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-strong focus:border-primary focus:outline-none transition-colors" 
-                                    />
+                                <div className="col-span-3 grid grid-cols-2 gap-5 mt-2">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold text-slate-400 ml-1">Annual Interest Rate (%)</label>
+                                        <input 
+                                            type="number" 
+                                            value={rate} 
+                                            onChange={(e) => setRate(Number(e.target.value))}
+                                            className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-strong focus:border-primary focus:outline-none transition-colors" 
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold text-slate-400 ml-1">Duration (Months)</label>
+                                        <input 
+                                            type="number" 
+                                            value={duration} 
+                                            onChange={(e) => setDuration(Number(e.target.value))}
+                                            className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-strong focus:border-primary focus:outline-none transition-colors" 
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>

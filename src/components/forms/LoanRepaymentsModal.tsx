@@ -9,31 +9,34 @@ interface LoanRepaymentsModalProps {
 }
 
 export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: LoanRepaymentsModalProps) => {
-    // Default to current month string "YYYY-MM"
-    const currentMonthStr = new Date().toISOString().slice(0, 7);
-    const [selectedMonth, setSelectedMonth] = useState(currentMonthStr);
-    const [selectedDay, setSelectedDay] = useState<string>('All');
+    // Default to current month's start and end date
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10);
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().slice(0, 10);
+
+    const [startDate, setStartDate] = useState<string>(firstDay);
+    const [endDate, setEndDate] = useState<string>(lastDay);
     
     // Force re-render when a payment is marked
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     // Calculate payouts
     const payoutsList = useMemo(() => {
-        if (!selectedMonth) return [];
+        if (!startDate || !endDate) return [];
 
-        const [yearStr, monthStr] = selectedMonth.split('-');
-        const targetYear = parseInt(yearStr, 10);
-        const targetMonthIndex = parseInt(monthStr, 10) - 1; // 0-indexed month
+        const startTarget = new Date(startDate);
+        startTarget.setHours(0, 0, 0, 0);
+
+        const endTarget = new Date(endDate);
+        endTarget.setHours(23, 59, 59, 999);
 
         const payouts: any[] = [];
 
         loans.forEach(loan => {
-            if (loan.status === 'Paid Full') return; // Optionally skip fully paid loans if desired, but we can list the schedule. Let's include everything or just active/overdue. Let's include all to show the full historic/future schedule.
+            if (loan.status === 'Paid Full') return;
 
-            // disburseDate might be like "Oct 15, 2025" or similar format. 
-            // the new ones use `toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })`
-            const startDate = new Date(loan.disburseDate);
-            if (isNaN(startDate.getTime())) return; // safety check
+            const loanStartDate = new Date(loan.disburseDate);
+            if (isNaN(loanStartDate.getTime())) return;
 
             const amount = Number(loan.amount);
             const rate = Number(loan.rate);
@@ -44,10 +47,9 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
             const monthlyPayment = duration > 0 ? expectedTotalRepayment / duration : 0;
 
             for (let i = 1; i <= duration; i++) {
-                // Calculate each due date by adding i months
-                const dueDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, startDate.getDate());
+                const dueDate = new Date(loanStartDate.getFullYear(), loanStartDate.getMonth() + i, loanStartDate.getDate());
 
-                if (dueDate.getFullYear() === targetYear && dueDate.getMonth() === targetMonthIndex) {
+                if (dueDate >= startTarget && dueDate <= endTarget) {
                     const repaymentRecord = loan.repayments && loan.repayments[i];
                     let amountPaid = 0;
                     if (repaymentRecord === true) {
@@ -65,7 +67,6 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                         paymentNumber: i,
                         totalDuration: duration,
                         dueDate: dueDate,
-                        dayOfMonth: dueDate.getDate(),
                         amount: monthlyPayment,
                         amountPaid: amountPaid,
                         originalId: loan.id,
@@ -76,16 +77,9 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
             }
         });
 
-        // Sort by day of the month sequentially (1 to 31)
-        let finalPayouts = payouts.sort((a, b) => a.dayOfMonth - b.dayOfMonth);
-
-        if (selectedDay !== 'All') {
-            const dayNum = parseInt(selectedDay, 10);
-            finalPayouts = finalPayouts.filter(p => p.dayOfMonth === dayNum);
-        }
-
-        return finalPayouts;
-    }, [loans, selectedMonth, selectedDay, refreshTrigger]);
+        // Sort by dueDate sequentially
+        return payouts.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+    }, [loans, startDate, endDate, refreshTrigger]);
 
     if (!isOpen) return null;
 
@@ -226,29 +220,22 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-main/50 p-4 border border-border-subtle rounded-xl">
                         <div className="flex gap-4 w-full md:w-auto">
                             <div className="flex flex-col gap-1.5 w-full md:w-auto">
-                                <label className="text-xs font-bold text-slate-400">Select Month & Year</label>
+                                <label className="text-xs font-bold text-slate-400">Start Date</label>
                                 <input 
-                                    type="month" 
-                                    value={selectedMonth}
-                                    onChange={(e) => setSelectedMonth(e.target.value)}
+                                    type="date" 
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
                                     className="h-11 px-4 bg-surface border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors"
                                 />
                             </div>
                             <div className="flex flex-col gap-1.5 w-full md:w-auto">
-                                <label className="text-xs font-bold text-slate-400">Filter by Day</label>
-                                <div className="relative">
-                                    <select 
-                                        value={selectedDay}
-                                        onChange={(e) => setSelectedDay(e.target.value)}
-                                        className="h-11 px-4 pr-10 bg-surface border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors appearance-none min-w-[120px]"
-                                    >
-                                        <option value="All">All Days</option>
-                                        {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
-                                            <option key={day} value={day}>Day {day}</option>
-                                        ))}
-                                    </select>
-                                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-[20px]">expand_more</span>
-                                </div>
+                                <label className="text-xs font-bold text-slate-400">End Date</label>
+                                <input 
+                                    type="date" 
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="h-11 px-4 bg-surface border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors"
+                                />
                             </div>
                         </div>
                         <div className="flex flex-col md:items-end">
@@ -280,11 +267,14 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                                         {payoutsList.map((payout) => (
                                             <tr key={payout.id} className={`hover:bg-white/[0.02] ${payout.isPaid ? 'opacity-50' : payout.isPartiallyPaid ? 'bg-orange-500/[0.02]' : ''}`}>
                                                 <td className="px-5 py-4">
-                                                    <div className={`flex flex-col items-center justify-center size-10 border rounded-lg ${payout.isPaid ? 'bg-green-500/10 border-green-500/20 text-green-500' : payout.isPartiallyPaid ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal'}`}>
+                                                    <div className={`flex flex-col items-center justify-center size-12 border rounded-lg ${payout.isPaid ? 'bg-green-500/10 border-green-500/20 text-green-500' : payout.isPartiallyPaid ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal'}`}>
                                                         {payout.isPaid ? (
                                                             <span className="material-symbols-outlined text-[20px]">check</span>
                                                         ) : (
-                                                            <span className="text-lg font-black leading-none">{payout.dayOfMonth}</span>
+                                                            <>
+                                                                <span className="text-sm font-black leading-none">{payout.dueDate.toLocaleDateString('en-US', { day: 'numeric' })}</span>
+                                                                <span className="text-[9px] font-bold uppercase">{payout.dueDate.toLocaleDateString('en-US', { month: 'short' })}</span>
+                                                            </>
                                                         )}
                                                     </div>
                                                 </td>

@@ -123,6 +123,7 @@ export const InvestorModal = ({ isOpen, onClose, onSuccess }: InvestorModalProps
                             <label className="text-xs font-bold text-slate-400">Date Invested</label>
                             <input 
                                 type="date" 
+                                min="2022-01-01"
                                 required
                                 value={dateInvested}
                                 onChange={(e) => setDateInvested(e.target.value)}

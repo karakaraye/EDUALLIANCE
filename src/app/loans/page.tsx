@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { LoanRepaymentsModal } from '@/components/forms/LoanRepaymentsModal';
+import { EditLoanModal } from '@/components/forms/EditLoanModal';
 import { calculateLoanStatus } from '@/utils/loan-utils';
 
 export default function LoansPage() {
@@ -14,7 +15,14 @@ export default function LoansPage() {
     const [loans, setLoans] = React.useState<any[]>([]);
     const [isMounted, setIsMounted] = React.useState(false);
     const [isRepaymentModalOpen, setIsRepaymentModalOpen] = React.useState(false);
+    
+    // Admin Edit Control States
+    const [userRole, setUserRole] = React.useState<string | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+    const [loanToEdit, setLoanToEdit] = React.useState<any>(null);
+
     const [currentPage, setCurrentPage] = React.useState(1);
+    const [loanFilter, setLoanFilter] = React.useState<'All' | 'Active' | 'Overdue' | 'Paid Full'>('All');
     const ITEMS_PER_PAGE = 10;
 
     const refreshLoans = () => {
@@ -48,6 +56,7 @@ export default function LoansPage() {
     React.useEffect(() => {
         setIsMounted(true);
         refreshLoans();
+        setUserRole(localStorage.getItem('edualliance_role') || 'LOAN_OFFICER');
     }, []);
 
     const formatCurrency = (amount: number) => {
@@ -83,11 +92,19 @@ export default function LoansPage() {
         : 0;
 
     // Pagination logic
-    const totalPages = Math.ceil(loans.length / ITEMS_PER_PAGE) || 1;
+    const filteredLoans = loans.filter((l: any) => {
+        if (loanFilter === 'All') return true;
+        if (loanFilter === 'Active') return l.status === 'Active';
+        if (loanFilter === 'Overdue') return l.status === 'Overdue';
+        if (loanFilter === 'Paid Full') return l.status === 'Paid Full';
+        return true;
+    });
+
+    const totalPages = Math.ceil(filteredLoans.length / ITEMS_PER_PAGE) || 1;
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginatedLoans = loans.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    const startEntry = Math.min(startIndex + 1, loans.length);
-    const endEntry = Math.min(startIndex + ITEMS_PER_PAGE, loans.length);
+    const paginatedLoans = filteredLoans.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    const startEntry = filteredLoans.length > 0 ? startIndex + 1 : 0;
+    const endEntry = Math.min(startIndex + ITEMS_PER_PAGE, filteredLoans.length);
 
     return (
         <DashboardLayout>
@@ -126,6 +143,13 @@ export default function LoansPage() {
                     onClose={() => setIsRepaymentModalOpen(false)}
                     loans={loans}
                     onLoansUpdated={refreshLoans}
+                />
+
+                <EditLoanModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    loan={loanToEdit}
+                    onSave={refreshLoans}
                 />
 
                 {/* KPIs */}
@@ -175,13 +199,29 @@ export default function LoansPage() {
                 {/* Filter Tabs */}
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-main/40 p-1.5 rounded-xl border border-border-subtle w-full">
                     <div className="flex gap-1 bg-surface p-1 rounded-lg border border-border-subtle">
-                        <button className="px-4 py-1.5 rounded-md bg-brand-teal text-strong text-xs font-bold shadow-md">All Loans</button>
-                        <button className="px-4 py-1.5 rounded-md text-slate-500 hover:text-strong text-xs font-bold transition-colors">Active</button>
-                        <button className="px-4 py-1.5 rounded-md text-slate-500 hover:text-strong text-xs font-bold transition-colors">Overdue</button>
-                        <button className="px-4 py-1.5 rounded-md text-slate-500 hover:text-strong text-xs font-bold transition-colors">Paid</button>
+                        <button 
+                            onClick={() => { setLoanFilter('All'); setCurrentPage(1); }}
+                            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${loanFilter === 'All' ? 'bg-brand-teal text-strong shadow-md' : 'text-slate-500 hover:text-strong'}`}>
+                            All Loans
+                        </button>
+                        <button 
+                            onClick={() => { setLoanFilter('Active'); setCurrentPage(1); }}
+                            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${loanFilter === 'Active' ? 'bg-brand-teal text-strong shadow-md' : 'text-slate-500 hover:text-strong'}`}>
+                            Active
+                        </button>
+                        <button 
+                            onClick={() => { setLoanFilter('Overdue'); setCurrentPage(1); }}
+                            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${loanFilter === 'Overdue' ? 'bg-red-500 text-strong shadow-md' : 'text-slate-500 hover:text-strong'}`}>
+                            Overdue
+                        </button>
+                        <button 
+                            onClick={() => { setLoanFilter('Paid Full'); setCurrentPage(1); }}
+                            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${loanFilter === 'Paid Full' ? 'bg-primary text-strong shadow-md' : 'text-slate-500 hover:text-strong'}`}>
+                            Paid
+                        </button>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-slate-500 font-bold px-4">
-                        <span>Showing {loans.length > 0 ? startEntry : 0}-{endEntry} of {loans.length} entries</span>
+                        <span>Showing {startEntry}-{endEntry} of {filteredLoans.length} entries</span>
                         <div className="flex gap-1 ml-2">
                             <button
                                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
@@ -292,6 +332,20 @@ export default function LoansPage() {
                                                         title="Delete Loan"
                                                     >
                                                         <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                    </button>
+                                                )}
+                                                {userRole === 'ADMIN' && loan.status !== 'Paid Full' && (
+                                                    <button 
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            setLoanToEdit(loan);
+                                                            setIsEditModalOpen(true);
+                                                        }}
+                                                        className="text-blue-500 hover:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 size-8 rounded-lg flex justify-center items-center transition-colors"
+                                                        title="Admin Override: Edit Loan"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[16px]">edit</span>
                                                     </button>
                                                 )}
                                                 <button className="text-slate-500 hover:text-strong transition-colors mt-1">

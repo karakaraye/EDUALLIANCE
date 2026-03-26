@@ -23,10 +23,7 @@ export const PayrollEntryForm: React.FC<PayrollEntryFormProps> = ({ onClose, onS
         wardrobe: 0,
         education: 0
     });
-    const [deductions, setDeductions] = useState({
-        pension: 0,
-        paye: 0
-    });
+    const [payePercentage, setPayePercentage] = useState<string>('5');
     
     const [bankName, setBankName] = useState('');
     const [accountNumber, setAccountNumber] = useState('');
@@ -123,21 +120,12 @@ export const PayrollEntryForm: React.FC<PayrollEntryFormProps> = ({ onClose, onS
         }));
     };
 
-    const handleDeductionChange = (key: 'pension' | 'paye', value: string) => {
-        setDeductions(prev => ({
-            ...prev,
-            [key]: Number(value) || 0
-        }));
-    };
-
     const handleCalculate = (e: React.FormEvent) => {
         e.preventDefault();
-        const totalAllowances = Object.values(allowances).reduce((a, b) => a + b, 0);
         const result = calculatePayroll(
             Number(baseSalary), 
-            totalAllowances,
-            deductions.pension,
-            deductions.paye
+            allowances,
+            Number(payePercentage)
         );
         setBreakdown(result);
     };
@@ -277,19 +265,22 @@ export const PayrollEntryForm: React.FC<PayrollEntryFormProps> = ({ onClose, onS
                 </div>
 
                 <div className="pt-2 border-t border-border-subtle flex flex-col gap-3">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Deductions</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Taxation</span>
                     <Input
-                        label="Pension (₦)"
+                        label="P.A.Y.E Percentage (%)"
                         type="number"
-                        value={deductions.pension || ''}
-                        onChange={(e) => handleDeductionChange('pension', e.target.value)}
+                        step="0.1"
+                        value={payePercentage}
+                        onChange={(e) => setPayePercentage(e.target.value)}
+                        required
                     />
-                    <Input
-                        label="P.A.Y.E (₦)"
-                        type="number"
-                        value={deductions.paye || ''}
-                        onChange={(e) => handleDeductionChange('paye', e.target.value)}
-                    />
+                    <div className="bg-brand-teal/5 border border-brand-teal/20 rounded-lg p-3 mt-2">
+                        <p className="text-brand-teal text-[10px] font-bold uppercase tracking-widest mb-1">Auto-Calc Engine Notice</p>
+                        <p className="text-slate-400 text-xs leading-relaxed">
+                            Pension is strictly computed as 8% of (Basic + Transport + Housing). <br/>
+                            PAYE is computed as {payePercentage || '0'}% of (Gross - Pension).
+                        </p>
+                    </div>
                 </div>
 
                 <div className="pt-2 border-t border-border-subtle flex flex-col gap-3">
