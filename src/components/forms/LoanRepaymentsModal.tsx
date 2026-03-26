@@ -214,7 +214,7 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                 </div>
 
                 {/* Body */}
-                <div className="p-6 flex flex-col gap-6 overflow-y-auto">
+                <div className="p-6 flex flex-col gap-6 overflow-y-auto flex-1 min-h-0">
                     
                     {/* Controls & Summary */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-main/50 p-4 border border-border-subtle rounded-xl">
