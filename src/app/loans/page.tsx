@@ -87,9 +87,7 @@ export default function LoansPage() {
     const totalPortfolio = nonPaidLoansArr.reduce((sum: number, l: any) => sum + Number(l.amount), 0);
     const activeLoansCount = activeLoansArr.length;
     const overdueVolume = overdueLoansArr.reduce((sum: number, l: any) => sum + Number(l.amountLeft), 0);
-    const avgInterestRate = activeLoansArr.length > 0
-        ? activeLoansArr.reduce((sum: number, l: any) => sum + Number(l.rate), 0) / activeLoansArr.length
-        : 0;
+    const totalMoniesOut = nonPaidLoansArr.reduce((sum: number, l: any) => sum + Number(l.amountLeft), 0);
 
     // Pagination logic
     const filteredLoans = loans.filter((l: any) => {
@@ -186,12 +184,12 @@ export default function LoansPage() {
                     </div>
                     <div className="bg-panel border border-border-subtle rounded-2xl p-6 relative overflow-hidden group">
                         <div className="flex justify-between items-start mb-4">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Avg Interest Rate</span>
-                            <span className="material-symbols-outlined text-slate-600">percent</span>
+                            <span className="text-[10px] font-black text-brand-teal uppercase tracking-widest">Total Monies Out</span>
+                            <span className="material-symbols-outlined text-brand-teal">payments</span>
                         </div>
                         <div className="flex items-baseline gap-2">
-                            <h3 className="text-3xl font-black text-strong">{avgInterestRate.toFixed(1)}%</h3>
-                            <span className="text-[10px] font-bold text-slate-500">stable</span>
+                            <h3 className="text-3xl font-black text-strong">{formatCurrency(totalMoniesOut)}</h3>
+                            <span className="text-[10px] font-bold text-slate-500">Outstanding Debt</span>
                         </div>
                     </div>
                 </div>
