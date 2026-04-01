@@ -150,13 +150,11 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
                 
                 // mutate local object for instant UI update without waiting for parent refresh
                 const ref = loans.find(l => l.id === loanId);
-                if (ref) {
-                    ref.repayments = ref.repayments || {};
-                    if (newAmountPaid <= 0) {
-                        delete ref.repayments[paymentNum];
-                    } else {
-                        ref.repayments[paymentNum] = newAmountPaid;
-                    }
+                const updatedEntry = updatedLoans.find((l: any) => l.id === loanId);
+                if (ref && updatedEntry) {
+                    ref.repayments = updatedEntry.repayments;
+                    ref.amountLeft = updatedEntry.amountLeft;
+                    ref.status = updatedEntry.status;
                 }
 
                 setRefreshTrigger(prev => prev + 1);
