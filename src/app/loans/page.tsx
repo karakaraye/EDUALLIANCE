@@ -56,7 +56,7 @@ export default function LoansPage() {
     React.useEffect(() => {
         setIsMounted(true);
         refreshLoans();
-        setUserRole(localStorage.getItem('edualliance_role') || 'LOAN_OFFICER');
+        setUserRole(sessionStorage.getItem('edualliance_role') || 'LOAN_OFFICER');
     }, []);
 
     const formatCurrency = (amount: number) => {

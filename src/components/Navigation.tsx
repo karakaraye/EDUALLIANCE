@@ -13,7 +13,7 @@ export const Navigation = () => {
     const [showDropdown, setShowDropdown] = React.useState(false);
 
     React.useEffect(() => {
-        setRole(localStorage.getItem('edualliance_role') || 'ADMIN');
+        setRole(sessionStorage.getItem('edualliance_role') || 'ADMIN');
         // Run once on client mount to sync state with html root
         const theme = localStorage.getItem('edualliance_theme') || 'dark';
         if (theme === 'dark') {
@@ -298,7 +298,7 @@ export const Navigation = () => {
                         style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBmlfkXIUB8Aqf1awBccTMIhK_rES2fLtpZ1rMXh9UYdLj38CWKDvUvqkhEmtzCshdqpW2AjLYJgbTc_ILMTkIYUXoDQbeHDi1zWOOvg7JXBXpxbJISeheRc_EWz603tp0pFfJXKOkMgWuSnw5q8zUHQAlKVouccVnqLHTOk09hXIfQrkAVDiWTWKDGNcOg1wYM0rH0WkFKOpwxnO07PXcAyVjI0t6vF2Tj7xffhJ2UoNvxfjoDb_7__1G0guR9O3rBsTmz3D0ePOSw")' }}>
                     </div>
                     <button 
-                        onClick={() => { localStorage.removeItem('edualliance_role'); window.location.href='/'; }}
+                        onClick={() => { sessionStorage.removeItem('edualliance_role'); window.location.href='/'; }}
                         className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-colors ml-1"
                     >
                         Sign Out

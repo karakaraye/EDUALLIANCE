@@ -9,17 +9,12 @@ export default function LoginPage() {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        const role = localStorage.getItem('edualliance_role');
-        if (role) {
-            if (role === 'ADMIN') window.location.href = '/dashboard';
-            else if (role === 'LOANS') window.location.href = '/loans';
-            else if (role === 'INVESTORS') window.location.href = '/investors';
-            else if (role === 'FINANCE') window.location.href = '/expenses';
-        }
+        sessionStorage.removeItem('edualliance_role');
+        localStorage.removeItem('edualliance_role'); // Clean up any lingering data
     }, []);
 
     const handleLogin = (role: string) => {
-        localStorage.setItem('edualliance_role', role);
+        sessionStorage.setItem('edualliance_role', role);
         if (role === 'ADMIN') window.location.href = '/dashboard';
         else if (role === 'LOANS') window.location.href = '/loans';
         else if (role === 'INVESTORS') window.location.href = '/investors';

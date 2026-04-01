@@ -15,7 +15,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
             return;
         }
 
-        const role = localStorage.getItem('edualliance_role');
+        const role = sessionStorage.getItem('edualliance_role');
         if (!role) {
             window.location.href = '/';
             return;
@@ -44,7 +44,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
                 window.location.href = '/expenses';
             }
         } else {
-            localStorage.removeItem('edualliance_role');
+            sessionStorage.removeItem('edualliance_role');
             window.location.href = '/';
         }
     }, []);
