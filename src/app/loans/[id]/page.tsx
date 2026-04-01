@@ -144,6 +144,47 @@ export default function LoanDetailPage() {
                     <p className="text-sm font-bold mt-2">Status: {loan.status || 'Active'}</p>
                 </div>
 
+                {/* Customer & Loan Details */}
+                <div className="bg-panel print:bg-transparent print:border-slate-300 border border-border-subtle rounded-2xl p-6 print:p-2 mb-2 print:mb-6">
+                    <div className="flex flex-col md:flex-row gap-8 items-start">
+                        {/* Avatar */}
+                        {loan.image && (
+                            <div className="size-24 rounded-2xl bg-surface border border-border-subtle overflow-hidden shrink-0 print:border-slate-300">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={loan.image} alt={loan.name} className="w-full h-full object-cover" />
+                            </div>
+                        )}
+                        
+                        {/* Details Grid */}
+                        <div className="flex-1 w-full grid grid-cols-2 md:grid-cols-4 gap-6 print:gap-4">
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest print:text-black">Principal Amount</span>
+                                <span className="text-lg font-bold text-strong print:text-black">{formatCurrency(amount)}</span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest print:text-black">Interest Rate</span>
+                                <span className="text-lg font-bold text-strong print:text-black">{rate}% <span className="text-[10px] text-slate-500 font-bold print:text-black">/ yr</span></span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest print:text-black">Duration</span>
+                                <span className="text-lg font-bold text-strong print:text-black">{duration} Months</span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest print:text-black">One-off Fee (6.5%)</span>
+                                <span className="text-lg font-bold text-strong print:text-black">{formatCurrency(amount * 0.065)}</span>
+                            </div>
+                            <div className="flex flex-col gap-1 md:col-span-2">
+                                <span className="text-[10px] font-black text-brand-teal uppercase tracking-widest print:text-slate-800">Exp. Total Repayment</span>
+                                <span className="text-xl font-black text-brand-teal print:text-slate-800">{formatCurrency(expectedTotalRepayment)}</span>
+                            </div>
+                            <div className="flex flex-col gap-1 md:col-span-2">
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest print:text-black">Monthly Installment</span>
+                                <span className="text-xl font-bold text-strong print:text-black">{formatCurrency(monthlyPayment)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* KPIs */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 print:gap-4">
                     <div className="bg-panel print:bg-transparent print:border-slate-300 border border-border-subtle rounded-2xl p-6 relative overflow-hidden">
