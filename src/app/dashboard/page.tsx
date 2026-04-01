@@ -23,29 +23,29 @@ export default function DashboardPage() {
 
     useEffect(() => {
         setIsMounted(true);
-        const saved = localStorage.getItem('edualliance_loans');
-        if (saved) {
-            try {
-                setLoans(JSON.parse(saved));
-            } catch (e) {
-                // Ignore parsing errors
-            }
-        }
 
-        const fetchReports = async () => {
+        const fetchAllData = async () => {
             try {
-                const res = await fetch('/api/reports');
-                const data = await res.json();
-                setApiSummary(data.summary || {
+                // Fetch reports
+                const resReports = await fetch('/api/reports');
+                const dataReports = await resReports.json();
+                setApiSummary(dataReports.summary || {
                     totalExpenses: 0, totalPayroll: 0, totalInvestorsPrincipal: 0, totalInvestorsPayout: 0
                 });
-                setApiLedger(data.ledger || []);
+                setApiLedger(dataReports.ledger || []);
+
+                // Fetch loans
+                const resLoans = await fetch('/api/loans');
+                const dataLoans = await resLoans.json();
+                if (Array.isArray(dataLoans)) {
+                    setLoans(dataLoans);
+                }
             } catch (err) {
-                console.error("Failed to fetch reports:", err);
+                console.error("Failed to fetch dashboard data:", err);
             }
         };
 
-        fetchReports();
+        fetchAllData();
     }, []);
 
     const formatCurrencyShort = (amount: number) => {

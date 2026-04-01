@@ -29,18 +29,10 @@ export default function NewLoanPage() {
         return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
     };
 
-    const handleDisburse = () => {
-        // Fetch existing loans or start with empty array if none exist
-        const savedLoans = localStorage.getItem('edualliance_loans');
-        let currentLoans = [];
-        if (savedLoans) {
-            try {
-                currentLoans = JSON.parse(savedLoans);
-            } catch (e) {
-                console.error("Failed to parse existing loans.", e);
-            }
-        }
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const handleDisburse = async () => {
+        setIsSubmitting(true);
         // Determine the ID (use custom or generate fallback)
         const finalLoanId = loanId.trim() ? `LN/ED/${loanId.trim()}` : `LN/ED/${Math.floor(Math.random() * 9000 + 1000)}`;
         
@@ -60,14 +52,19 @@ export default function NewLoanPage() {
             disburseDate: disburseDateStr
         };
 
-        // Add to the front of the list
-        currentLoans.unshift(newLoan);
-
-        // Save back to storage
-        localStorage.setItem('edualliance_loans', JSON.stringify(currentLoans));
-
-        // Redirect to records
-        router.push('/loans');
+        try {
+            await fetch('/api/loans', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newLoan)
+            });
+            // Redirect to records
+            router.push('/loans');
+        } catch (e) {
+            console.error("Failed to disburse loan", e);
+            alert("Failed to create loan in database.");
+            setIsSubmitting(false);
+        }
     };
 
     return (

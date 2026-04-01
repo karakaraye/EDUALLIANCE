@@ -25,50 +25,51 @@ export const EditLoanModal = ({ isOpen, onClose, loan, onSave }: EditLoanModalPr
 
     if (!isOpen || !loan) return null;
 
-    const handleSave = () => {
-        const savedLoans = localStorage.getItem('edualliance_loans');
-        if (savedLoans) {
-            try {
-                const parsed = JSON.parse(savedLoans);
-                const updatedLoans = parsed.map((l: any) => {
-                    if (l.id === loan.id) {
-                        // Recalculate everything based on new parameters
-                        const interestEarned = principal * (rate / 100) * duration;
-                        const expectedTotalRepayment = principal + interestEarned;
-                        
-                        // Recalculate paid amount from existing manual repayments if any
-                        const repayments = l.repayments || {};
-                        let paidAmount = 0;
-                        const monthlyPayment = duration > 0 ? expectedTotalRepayment / duration : 0;
-                        
-                        for (let i = 1; i <= duration; i++) {
-                            const rec = repayments[i];
-                            if (rec === true) paidAmount += monthlyPayment;
-                            else if (typeof rec === 'number') paidAmount += rec;
-                        }
-                        
-                        let newAmountLeft = expectedTotalRepayment - paidAmount;
-                        if (newAmountLeft < 0.01) newAmountLeft = 0;
-                        
-                        return {
-                            ...l,
-                            name,
-                            amount: principal,
-                            rate,
-                            durationMonths: duration,
-                            amountLeft: newAmountLeft,
-                            status: newAmountLeft === 0 ? 'Paid Full' : 'Active'
-                        };
-                    }
-                    return l;
-                });
-                
-                localStorage.setItem('edualliance_loans', JSON.stringify(updatedLoans));
-                onSave();
-                onClose();
-            } catch (e) {
-                console.error("Failed to update loan", e);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            // Recalculate based on new parameters
+            const interestEarned = principal * (rate / 100) * duration;
+            const expectedTotalRepayment = principal + interestEarned;
+            
+            // Recalculate paid amount from existing manual repayments if any
+            const repayments = loan.repayments || {};
+            let paidAmount = 0;
+            const monthlyPayment = duration > 0 ? expectedTotalRepayment / duration : 0;
+            
+            for (let i = 1; i <= duration; i++) {
+                const rec = repayments[i];
+                if (rec === true) paidAmount += monthlyPayment;
+                else if (typeof rec === 'number') paidAmount += rec;
             }
+            
+            let newAmountLeft = expectedTotalRepayment - paidAmount;
+            if (newAmountLeft < 0.01) newAmountLeft = 0;
+            
+            const newStatus = newAmountLeft === 0 ? 'Paid Full' : 'Active';
+
+            await fetch('/api/loans', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: loan.id,
+                    name,
+                    amount: principal,
+                    interestRate: rate,
+                    durationMonths: duration,
+                    amountLeft: newAmountLeft,
+                    status: newStatus
+                })
+            });
+            onSave();
+            onClose();
+        } catch (e) {
+            console.error("Failed to update loan", e);
+            alert("Admin Save Failed");
+        } finally {
+            setIsSaving(false);
         }
     };
 

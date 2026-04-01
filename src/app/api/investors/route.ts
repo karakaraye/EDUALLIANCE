@@ -11,13 +11,15 @@ export async function GET() {
 
         const formatted = investors.map(inv => ({
             id: inv.id,
-            displayId: `#INV-${inv.id.substring(0, 4).toUpperCase()}`,
+            displayId: `INV-${inv.id.substring(0, 5).toUpperCase()}`,
             name: inv.name,
             amountInvested: inv.amountInvested,
             interestRate: inv.interestRate,
             dateInvested: new Date(inv.dateInvested).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            rawDate: inv.dateInvested,
             status: inv.status,
-            rawDate: inv.dateInvested
+            payouts: [],
+            totalPaid: 0
         }));
 
         return NextResponse.json(formatted);

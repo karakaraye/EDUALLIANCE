@@ -19,7 +19,6 @@ model User {
   role          Role      @default(EMPLOYEE)
   departmentId  String?
   department    Department? @relation(fields: [departmentId], references: [id])
-  loans         Loan[]
   payroll       Salary[]
   managedExps   Expense[]   @relation("ExpenseManager")
   basicSalary   Float       @default(0)
@@ -46,35 +45,18 @@ enum Role {
 
 // Loan Management
 model Loan {
-  id              String           @id @default(uuid())
-  userId          String
-  user            User             @relation(fields: [userId], references: [id])
+  rawId           String   @id @default(uuid())
+  id              String   @unique // This will store the frontend string ID (e.g. LN/ED/1002)
+  name            String
+  avatar          String?
   amount          Float
   interestRate    Float
-  durationWeeks   Int
-  status          LoanStatus       @default(PENDING)
-  remainingBalance Float
-  repayments      RepaymentSchedule[]
-  createdAt       DateTime         @default(now())
-}
-
-model RepaymentSchedule {
-  id        String   @id @default(uuid())
-  loanId    String
-  loan      Loan     @relation(fields: [loanId], references: [id])
-  dueDate   DateTime
-  amount    Float
-  isPaid    Boolean  @default(false)
-  paidAt    DateTime?
-}
-
-enum LoanStatus {
-  PENDING
-  APPROVED
-  DISBURSED
-  COMPLETED
-  OVERDUE
-  DEFAULTED
+  durationMonths  Int
+  status          String   @default("Active")
+  amountLeft      Float
+  disburseDate    DateTime
+  repayments      Json     @default("{}")
+  createdAt       DateTime @default(now())
 }
 
 // Payroll Management

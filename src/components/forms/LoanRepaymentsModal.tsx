@@ -87,81 +87,75 @@ export const LoanRepaymentsModal = ({ isOpen, onClose, loans, onLoansUpdated }: 
         return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
     };
 
-    const updatePaymentAmount = (loanId: string, paymentNum: number, newAmountPaid: number) => {
-        const savedLoans = localStorage.getItem('edualliance_loans');
-        if (savedLoans) {
-            try {
-                const parsed = JSON.parse(savedLoans);
-                const updatedLoans = parsed.map((l: any) => {
-                    if (l.id === loanId) {
-                        const newRepayments = { ...(l.repayments || {}) };
-                        
-                        if (newAmountPaid <= 0) {
-                            delete newRepayments[paymentNum];
-                        } else {
-                            newRepayments[paymentNum] = newAmountPaid;
-                        }
-                        
-                        // Recalculate amountLeft and status
-                        const amount = Number(l.amount);
-                        const rate = Number(l.rate);
-                        const duration = Number(l.durationMonths);
-                        const interestEarned = amount * (rate / 100) * duration;
-                        const expectedTotal = amount + interestEarned;
-                        const monthlyPayment = duration > 0 ? expectedTotal / duration : 0;
-                        
-                        let paidAmount = 0;
-                        let paidCount = 0;
-                        for (let i = 1; i <= duration; i++) {
-                            const rec = newRepayments[i];
-                            let instPaid = 0;
-                            if (rec === true) {
-                                instPaid = monthlyPayment;
-                                paidCount++;
-                            } else if (typeof rec === 'number') {
-                                instPaid = rec;
-                                if (instPaid >= monthlyPayment - 0.01) {
-                                    paidCount++;
-                                }
-                            }
-                            paidAmount += instPaid;
-                        }
-                        
-                        let newAmountLeft = expectedTotal - paidAmount;
-                        if (newAmountLeft < 0.01) newAmountLeft = 0; // Float precision
-                        
-                        let newStatus = l.status;
-                        if (paidCount === duration || newAmountLeft === 0) {
-                            newStatus = 'Paid Full';
-                        } else if (l.status === 'Paid Full' && newAmountLeft > 0) {
-                            newStatus = 'Active';
-                        }
+    const updatePaymentAmount = async (loanId: string, paymentNum: number, newAmountPaid: number) => {
+        try {
+            const loan = loans.find((l: any) => l.id === loanId);
+            if (!loan) return;
 
-                        return { 
-                            ...l, 
-                            repayments: newRepayments,
-                            amountLeft: newAmountLeft,
-                            status: newStatus
-                        };
-                    }
-                    return l;
-                });
-                localStorage.setItem('edualliance_loans', JSON.stringify(updatedLoans));
-                
-                // mutate local object for instant UI update without waiting for parent refresh
-                const ref = loans.find(l => l.id === loanId);
-                const updatedEntry = updatedLoans.find((l: any) => l.id === loanId);
-                if (ref && updatedEntry) {
-                    ref.repayments = updatedEntry.repayments;
-                    ref.amountLeft = updatedEntry.amountLeft;
-                    ref.status = updatedEntry.status;
-                }
-
-                setRefreshTrigger(prev => prev + 1);
-                if (onLoansUpdated) onLoansUpdated();
-            } catch (e) {
-                console.error("Failed to update payment amount:", e);
+            const newRepayments = { ...(loan.repayments || {}) };
+            
+            if (newAmountPaid <= 0) {
+                delete newRepayments[paymentNum];
+            } else {
+                newRepayments[paymentNum] = newAmountPaid;
             }
+            
+            // Recalculate amountLeft and status
+            const amount = Number(loan.amount);
+            const rate = Number(loan.rate);
+            const duration = Number(loan.durationMonths);
+            const interestEarned = amount * (rate / 100) * duration;
+            const expectedTotal = amount + interestEarned;
+            const monthlyPayment = duration > 0 ? expectedTotal / duration : 0;
+            
+            let paidAmount = 0;
+            let paidCount = 0;
+            for (let i = 1; i <= duration; i++) {
+                const rec = newRepayments[i];
+                let instPaid = 0;
+                if (rec === true) {
+                    instPaid = monthlyPayment;
+                    paidCount++;
+                } else if (typeof rec === 'number') {
+                    instPaid = rec;
+                    if (instPaid >= monthlyPayment - 0.01) {
+                        paidCount++;
+                    }
+                }
+                paidAmount += instPaid;
+            }
+            
+            let newAmountLeft = expectedTotal - paidAmount;
+            if (newAmountLeft < 0.01) newAmountLeft = 0; // Float precision
+            
+            let newStatus = loan.status;
+            if (paidCount === duration || newAmountLeft === 0) {
+                newStatus = 'Paid Full';
+            } else if (loan.status === 'Paid Full' && newAmountLeft > 0) {
+                newStatus = 'Active';
+            }
+
+            // Sync with backend API
+            await fetch('/api/loans', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: loan.id,
+                    repayments: newRepayments,
+                    amountLeft: newAmountLeft,
+                    status: newStatus
+                })
+            });
+
+            // mutate local object for instant UI update without waiting for parent refresh
+            loan.repayments = newRepayments;
+            loan.amountLeft = newAmountLeft;
+            loan.status = newStatus;
+
+            setRefreshTrigger(prev => prev + 1);
+            if (onLoansUpdated) onLoansUpdated();
+        } catch (e) {
+            console.error("Failed to update payment amount:", e);
         }
     };
 

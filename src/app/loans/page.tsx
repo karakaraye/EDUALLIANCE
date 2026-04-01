@@ -25,32 +25,37 @@ export default function LoansPage() {
     const [loanFilter, setLoanFilter] = React.useState<'All' | 'Active' | 'Overdue' | 'Paid Full'>('All');
     const ITEMS_PER_PAGE = 10;
 
+    const [loading, setLoading] = React.useState(true);
+
     const refreshLoans = () => {
-        const saved = localStorage.getItem('edualliance_loans');
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                let hasChanges = false;
+        setLoading(true);
+        fetch('/api/loans')
+            .then(res => res.json())
+            .then(parsed => {
+                if (!Array.isArray(parsed)) {
+                    setLoans(defaultLoans);
+                    return;
+                }
                 const enriched = parsed.map((l: any) => {
                     const status = calculateLoanStatus(l);
-                    if (l.status !== status) hasChanges = true;
+                    if (l.status !== status) {
+                        // Persist dynamic status change to Postgres
+                        fetch('/api/loans', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: l.id, status })
+                        }).catch(console.error);
+                    }
                     return { ...l, status };
                 });
                 
-                if (hasChanges) {
-                    localStorage.setItem('edualliance_loans', JSON.stringify(enriched));
-                }
-                
                 setLoans(enriched);
-            } catch (e) {
-                console.error("Failed to parse loans, resetting to default.");
+            })
+            .catch(e => {
+                console.error("Failed to parse loans, resetting to default.", e);
                 setLoans(defaultLoans);
-                localStorage.setItem('edualliance_loans', JSON.stringify(defaultLoans));
-            }
-        } else {
-            setLoans(defaultLoans);
-            localStorage.setItem('edualliance_loans', JSON.stringify(defaultLoans));
-        }
+            })
+            .finally(() => setLoading(false));
     };
 
     React.useEffect(() => {
@@ -63,17 +68,14 @@ export default function LoansPage() {
         return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
     };
 
-    const deleteLoan = (id: string) => {
-        const savedLoans = localStorage.getItem('edualliance_loans');
-        if (savedLoans) {
-            try {
-                const parsed = JSON.parse(savedLoans);
-                const updatedLoans = parsed.filter((l: any) => l.id !== id);
-                localStorage.setItem('edualliance_loans', JSON.stringify(updatedLoans));
-                setLoans(updatedLoans);
-            } catch (e) {
-                console.error("Failed to delete loan", e);
+    const deleteLoan = async (id: string) => {
+        try {
+            const res = await fetch(`/api/loans?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+            if (res.ok) {
+                refreshLoans();
             }
+        } catch (e) {
+            console.error("Failed to delete loan", e);
         }
     };
 

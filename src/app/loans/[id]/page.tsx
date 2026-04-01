@@ -14,16 +14,17 @@ export default function LoanDetailPage() {
 
     useEffect(() => {
         setIsMounted(true);
-        const saved = localStorage.getItem('edualliance_loans');
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                const found = parsed.find((l: any) => l.id.replace('#', '') === loanId);
-                setLoan(found);
-            } catch (e) {
+        fetch('/api/loans')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    const found = data.find((l: any) => l.id.replace('#', '') === loanId);
+                    setLoan(found || null);
+                }
+            })
+            .catch(e => {
                 console.error("Failed to load loan", e);
-            }
-        }
+            });
     }, [loanId]);
 
     if (!isMounted) return null;
