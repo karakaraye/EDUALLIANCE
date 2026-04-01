@@ -17,7 +17,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
 
         const role = localStorage.getItem('edualliance_role');
         if (!role) {
-            window.location.href = '/login';
+            window.location.href = '/';
             return;
         }
 
@@ -45,7 +45,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
             }
         } else {
             localStorage.removeItem('edualliance_role');
-            window.location.href = '/login';
+            window.location.href = '/';
         }
     }, []);
 

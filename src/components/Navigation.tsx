@@ -163,11 +163,11 @@ export const Navigation = () => {
                 <nav className="hidden xl:flex items-center gap-8">
                     {role === 'ADMIN' && (
                         <Link
-                            href="/"
-                            className={`text-sm font-semibold flex items-center gap-2 group relative transition-colors ${isActive('/') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
+                            href="/dashboard"
+                            className={`text-sm font-semibold flex items-center gap-2 group relative transition-colors ${isActive('/dashboard') ? 'text-primary' : 'text-slate-400 hover:text-strong'}`}
                         >
                             <span className="material-symbols-outlined text-[20px]">dashboard</span> Dashboard
-                            {isActive('/') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
+                            {isActive('/dashboard') && <div className="h-0.5 w-full bg-primary absolute -bottom-[19px] rounded-full"></div>}
                         </Link>
                     )}
 
@@ -298,7 +298,7 @@ export const Navigation = () => {
                         style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBmlfkXIUB8Aqf1awBccTMIhK_rES2fLtpZ1rMXh9UYdLj38CWKDvUvqkhEmtzCshdqpW2AjLYJgbTc_ILMTkIYUXoDQbeHDi1zWOOvg7JXBXpxbJISeheRc_EWz603tp0pFfJXKOkMgWuSnw5q8zUHQAlKVouccVnqLHTOk09hXIfQrkAVDiWTWKDGNcOg1wYM0rH0WkFKOpwxnO07PXcAyVjI0t6vF2Tj7xffhJ2UoNvxfjoDb_7__1G0guR9O3rBsTmz3D0ePOSw")' }}>
                     </div>
                     <button 
-                        onClick={() => { localStorage.removeItem('edualliance_role'); window.location.href='/login'; }}
+                        onClick={() => { localStorage.removeItem('edualliance_role'); window.location.href='/'; }}
                         className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-colors ml-1"
                     >
                         Sign Out
