@@ -52,9 +52,9 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
     if (!authorized) return null;
 
     return (
-        <div className="bg-surface text-slate-300 min-h-screen font-display flex flex-col">
+        <div className="bg-surface text-slate-300 min-h-screen font-display flex flex-col overflow-x-hidden w-full">
             <Navigation />
-            <main className="flex-1 px-6 lg:px-10 py-10 max-w-[1920px] mx-auto w-full animate-in fade-in duration-500">
+            <main className="flex-1 px-3 sm:px-6 lg:px-10 py-4 sm:py-6 lg:py-10 w-full max-w-[1920px] mx-auto animate-in fade-in duration-500 overflow-x-hidden">
                 {children}
             </main>
             <Footer />

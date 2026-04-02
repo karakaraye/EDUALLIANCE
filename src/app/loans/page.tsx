@@ -240,7 +240,7 @@ export default function LoansPage() {
                 </div>
 
                 {/* Table */}
-                <div className="bg-panel border border-border-subtle rounded-2xl overflow-hidden overflow-x-auto">
+                <div className="bg-panel border border-border-subtle rounded-2xl overflow-x-auto w-full max-w-[100vw]">
                     <table className="w-full min-w-max text-left border-collapse">
                         <thead>
                             <tr className="bg-main/40 border-b border-border-subtle">

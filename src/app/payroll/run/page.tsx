@@ -152,7 +152,7 @@ export default function RunPayrollPage() {
                                     <p className="text-xs mt-1">Use the form on the left to start building this payroll batch.</p>
                                 </div>
                             ) : (
-                                <div className="overflow-x-auto">
+                                <div className="overflow-x-auto w-full max-w-[100vw]">
                                     <table className="w-full text-left border-collapse">
                                         <thead>
                                             <tr className="bg-main/40 border-b border-border-subtle">

@@ -223,8 +223,8 @@ export const Navigation = () => {
                 </nav>
             </div>
 
-            <div className="flex flex-1 justify-end gap-6 items-center">
-                <div className="relative w-72 hidden md:block">
+            <div className="flex flex-1 justify-end gap-3 lg:gap-6 items-center">
+                <div className="relative w-full max-w-[200px] xl:max-w-xs hidden md:block">
                     <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-[20px]">search</span>
                     <input
                         className="w-full h-10 pl-10 pr-4 rounded-full bg-panel border border-border-subtle focus:border-primary focus:ring-1 focus:ring-primary text-sm text-strong placeholder:text-slate-600 transition-all outline-none"

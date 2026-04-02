@@ -167,7 +167,7 @@ export default function DashboardPage() {
         </div>
 
         {/* KPI Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
           {/* Metric 1 */}
           <div className="group flex flex-col gap-4 rounded-2xl p-7 bg-panel border border-border-subtle hover:border-primary/30 transition-all duration-300">
             <div className="flex justify-between items-center">
@@ -257,7 +257,7 @@ export default function DashboardPage() {
               </div>
             </div>
             {/* Dynamic Tailwind Bar Chart */}
-            <div className="flex h-[280px] w-full items-end justify-between px-2 sm:px-6 pb-12 pt-4 relative">
+            <div className="flex h-[220px] md:h-[280px] w-full items-end justify-between px-2 sm:px-6 pb-12 pt-4 relative">
               {/* Horizontal grid lines */}
               <div className="absolute inset-x-8 bottom-12 top-4 flex flex-col justify-between z-0 pointer-events-none opacity-[0.03]">
                 <div className="w-full border-t border-white"></div>
@@ -268,7 +268,7 @@ export default function DashboardPage() {
               
               {monthlyFinancials.map((data, idx) => (
                   <div key={idx} className="flex flex-col items-center gap-2 z-10 flex-1 relative group w-full">
-                    <div className="flex items-end justify-center w-full gap-1 sm:gap-2 h-[220px]">
+                    <div className="flex items-end justify-center w-full gap-1 sm:gap-2 h-full">
                       {/* Income Bar */}
                       <div 
                         className="w-1/3 max-w-[24px] bg-brand-teal rounded-t transition-all duration-500 relative hover:brightness-125 hover:shadow-[0_0_15px_rgba(52,211,153,0.3)]"
@@ -353,8 +353,8 @@ export default function DashboardPage() {
               </button>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto w-full max-w-[100vw]">
+            <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
                 <tr className="bg-main/40 border-b border-border-subtle">
                   <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500">ID Reference</th>
