@@ -40,14 +40,14 @@ export default function InvestorsPage() {
     return (
         <DashboardLayout>
             <div className="flex flex-col gap-8 relative">
-                
-                <InvestorModal 
-                    isOpen={isModalOpen} 
-                    onClose={() => setIsModalOpen(false)} 
-                    onSuccess={fetchInvestors} 
+
+                <InvestorModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSuccess={fetchInvestors}
                 />
 
-                <InvestorRepaymentsModal 
+                <InvestorRepaymentsModal
                     isOpen={isRepaymentModalOpen}
                     onClose={() => setIsRepaymentModalOpen(false)}
                     investors={investors}
@@ -65,13 +65,13 @@ export default function InvestorsPage() {
                         <p className="text-slate-500 text-sm mt-1">Manage external capital providers, track total funds injected, and compute expected returns.</p>
                     </div>
                     <div className="flex gap-3">
-                        <button 
+                        <button
                             onClick={() => setIsRepaymentModalOpen(true)}
                             className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 text-xs font-bold transition-all"
                         >
                             <span className="material-symbols-outlined text-[18px]">calendar_month</span> Monthly Repayment
                         </button>
-                        <button 
+                        <button
                             onClick={() => setIsModalOpen(true)}
                             className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-primary to-brand-teal hover:opacity-90 text-strong text-xs font-bold transition-all shadow-lg shadow-primary/20"
                         >
@@ -111,7 +111,7 @@ export default function InvestorsPage() {
                             <button className="text-slate-500 hover:text-strong transition-colors"><span className="material-symbols-outlined">search</span></button>
                         </div>
                     </div>
-                    
+
                     {loading ? (
                         <div className="flex justify-center items-center py-20 text-brand-teal">
                             <span className="material-symbols-outlined animate-spin text-4xl">refresh</span>

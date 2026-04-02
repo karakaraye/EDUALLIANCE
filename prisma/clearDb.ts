@@ -8,7 +8,7 @@ async function clearData() {
   try {
     // Delete in reverse order of relational constraints
     await prisma.ledger.deleteMany();
-    await prisma.repaymentSchedule.deleteMany();
+
     await prisma.expense.deleteMany();
     await prisma.salary.deleteMany();
     await prisma.payrollPeriod.deleteMany();
