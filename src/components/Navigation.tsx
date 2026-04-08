@@ -99,13 +99,18 @@ export const Navigation = () => {
                 investorsRes.forEach((inv: any) => {
                     if (inv.status !== 'Active') return;
                     const startRawDate = new Date(inv.dateInvested);
-                    const monthlyPayment = (Number(inv.amountInvested) / 12) + (Number(inv.amountInvested) * (Number(inv.interestRate) / 100));
+                    const principal = Number(inv.amountInvested);
+                    const rate = Number(inv.interestRate);
+                    const monthlyProfit = principal * (rate / 100);
                     
                     for (let i = 1; i <= 12; i++) {
                         const dueDate = new Date(startRawDate.getFullYear(), startRawDate.getMonth() + i, startRawDate.getDate());
                         dueDate.setHours(0,0,0,0);
                         
                         if (dueDate >= today && dueDate <= limitDate) {
+                            // Monthly payout: only profit for 1-11, principal + profit for 12.
+                            const currentPayout = (i === 12) ? (principal + monthlyProfit) : monthlyProfit;
+
                             // Check if payout exists in Expenses
                             const monthStr = dueDate.toISOString().slice(0, 7);
                             const paymentDesc = `Investor Payout - ${inv.name} (Payment ${i}/12, ${monthStr})`;
@@ -115,7 +120,7 @@ export const Navigation = () => {
                                 alerts.push({
                                     type: 'INVESTOR_PAYOUT',
                                     title: 'Investor Payout Due',
-                                    desc: `remit (₦${monthlyPayment.toLocaleString(undefined, { maximumFractionDigits: 0 })}) to ${inv.name}.`,
+                                    desc: `remit (₦${currentPayout.toLocaleString(undefined, { maximumFractionDigits: 0 })}) to ${inv.name}.`,
                                     date: dueDate,
                                 });
                             }

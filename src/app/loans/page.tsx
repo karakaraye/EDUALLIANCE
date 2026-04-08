@@ -61,7 +61,7 @@ export default function LoansPage() {
     React.useEffect(() => {
         setIsMounted(true);
         refreshLoans();
-        setUserRole(sessionStorage.getItem('edualliance_role') || 'LOAN_OFFICER');
+        setUserRole(sessionStorage.getItem('edualliance_role') || 'ADMIN');
     }, []);
 
     const formatCurrency = (amount: number) => {
@@ -334,7 +334,7 @@ export default function LoansPage() {
                                                         <span className="material-symbols-outlined text-[16px]">delete</span>
                                                     </button>
                                                 )}
-                                                {userRole === 'ADMIN' && loan.status !== 'Paid Full' && (
+                                                {userRole === 'ADMIN' && (
                                                     <button 
                                                         onClick={(e) => {
                                                             e.preventDefault();

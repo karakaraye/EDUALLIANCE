@@ -6,13 +6,28 @@ interface InvestorModalProps {
     onSuccess: () => void;
 }
 
-export const InvestorModal = ({ isOpen, onClose, onSuccess }: InvestorModalProps) => {
+export const InvestorModal = ({ isOpen, onClose, onSuccess, investor }: InvestorModalProps & { investor?: any }) => {
     const [name, setName] = useState('');
     const [amountInvested, setAmountInvested] = useState('');
     const [interestRate, setInterestRate] = useState('');
     const [dateInvested, setDateInvested] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
+
+    React.useEffect(() => {
+        if (investor) {
+            setName(investor.name || '');
+            setAmountInvested(investor.amountInvested || '');
+            setInterestRate(investor.interestRate || '');
+            const rawDate = investor.rawDate ? new Date(investor.rawDate).toISOString().split('T')[0] : '';
+            setDateInvested(rawDate);
+        } else {
+            setName('');
+            setAmountInvested('');
+            setInterestRate('');
+            setDateInvested('');
+        }
+    }, [investor, isOpen]);
 
     if (!isOpen) return null;
 
@@ -22,15 +37,19 @@ export const InvestorModal = ({ isOpen, onClose, onSuccess }: InvestorModalProps
         setIsSubmitting(true);
 
         try {
+            const method = investor ? 'PUT' : 'POST';
+            const body = {
+                id: investor?.id,
+                name,
+                amountInvested,
+                interestRate,
+                dateInvested
+            };
+
             const res = await fetch('/api/investors', {
-                method: 'POST',
+                method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name,
-                    amountInvested,
-                    interestRate,
-                    dateInvested
-                })
+                body: JSON.stringify(body)
             });
 
             if (!res.ok) {
@@ -38,11 +57,13 @@ export const InvestorModal = ({ isOpen, onClose, onSuccess }: InvestorModalProps
                 throw new Error(data.error || 'Failed to submit the investor');
             }
 
-            // reset form
-            setName('');
-            setAmountInvested('');
-            setInterestRate('');
-            setDateInvested('');
+            if (!investor) {
+                // reset form only if adding new
+                setName('');
+                setAmountInvested('');
+                setInterestRate('');
+                setDateInvested('');
+            }
             
             onSuccess();
             onClose();
@@ -123,7 +144,6 @@ export const InvestorModal = ({ isOpen, onClose, onSuccess }: InvestorModalProps
                             <label className="text-xs font-bold text-slate-400">Date Invested</label>
                             <input 
                                 type="date" 
-                                min="2022-01-01"
                                 required
                                 value={dateInvested}
                                 onChange={(e) => setDateInvested(e.target.value)}
@@ -143,7 +163,9 @@ export const InvestorModal = ({ isOpen, onClose, onSuccess }: InvestorModalProps
                         <button 
                             type="submit" 
                             disabled={isSubmitting}
-                            className="px-5 py-2.5 rounded-lg bg-brand-teal hover:bg-teal-600 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-panel text-strong text-xs font-bold transition-all shadow-lg shadow-teal-900/20 disabled:opacity-50 flex items-center gap-2"
+                            className={`px-5 py-2.5 rounded-lg text-strong text-xs font-bold transition-all shadow-lg disabled:opacity-50 flex items-center gap-2 ${
+                                investor ? 'bg-red-500 hover:bg-red-600 shadow-red-900/20' : 'bg-brand-teal hover:bg-teal-600 shadow-teal-900/20'
+                            }`}
                         >
                             {isSubmitting ? (
                                 <>
@@ -152,7 +174,7 @@ export const InvestorModal = ({ isOpen, onClose, onSuccess }: InvestorModalProps
                                 </>
                             ) : (
                                 <>
-                                    Add Investor
+                                    {investor ? 'Force Update Record' : 'Add Investor'}
                                 </>
                             )}
                         </button>

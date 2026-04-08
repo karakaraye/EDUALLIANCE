@@ -44,31 +44,32 @@ export const InvestorRepaymentsModal = ({ isOpen, onClose, investors }: Investor
 
         const payouts: any[] = [];
 
-        investors.forEach(inv => {
-            const startDate = new Date(inv.rawDate);
-            const amount = Number(inv.amountInvested);
-            const rate = Number(inv.interestRate);
-            
-            // Monthly Payment = (Principal / 12) + (Principal * Rate / 100)
-            const monthlyPayment = (amount / 12) + (amount * (rate / 100));
+            investors.forEach(inv => {
+                const startDate = new Date(inv.rawDate);
+                const principal = Number(inv.amountInvested);
+                const rate = Number(inv.interestRate);
+                
+                const monthlyProfit = principal * (rate / 100);
 
-            for (let i = 1; i <= 12; i++) {
-                // Calculate each due date by adding i months
-                const dueDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, startDate.getDate());
+                for (let i = 1; i <= 12; i++) {
+                    const dueDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, startDate.getDate());
 
-                if (dueDate.getFullYear() === targetYear && dueDate.getMonth() === targetMonthIndex) {
-                    payouts.push({
-                        id: `${inv.id}-${i}`,
-                        investorName: inv.name,
-                        paymentNumber: i,
-                        dueDate: dueDate,
-                        dayOfMonth: dueDate.getDate(),
-                        amount: monthlyPayment,
-                        originalId: inv.displayId
-                    });
+                    if (dueDate.getFullYear() === targetYear && dueDate.getMonth() === targetMonthIndex) {
+                        // Monthly payout: only profit for 1-11, principal + profit for 12.
+                        const currentPayout = (i === 12) ? (principal + monthlyProfit) : monthlyProfit;
+
+                        payouts.push({
+                            id: `${inv.id}-${i}`,
+                            investorName: inv.name,
+                            paymentNumber: i,
+                            dueDate: dueDate,
+                            dayOfMonth: dueDate.getDate(),
+                            amount: currentPayout,
+                            originalId: inv.displayId
+                        });
+                    }
                 }
-            }
-        });
+            });
 
         // Sort by day of the month sequentially (1 to 31)
         return payouts.sort((a, b) => a.dayOfMonth - b.dayOfMonth);

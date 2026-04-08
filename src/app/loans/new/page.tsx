@@ -153,7 +153,6 @@ export default function NewLoanPage() {
                                     <label className="text-xs font-bold text-slate-400 ml-1">Disbursement Date</label>
                                     <input 
                                         type="date" 
-                                        min="2022-01-01"
                                         value={disbursementDate} 
                                         onChange={(e) => setDisbursementDate(e.target.value)}
                                         className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-strong focus:border-primary focus:outline-none transition-colors" 

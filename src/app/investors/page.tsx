@@ -11,6 +11,8 @@ export default function InvestorsPage() {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isRepaymentModalOpen, setIsRepaymentModalOpen] = useState(false);
+    const [investorToEdit, setInvestorToEdit] = useState<any>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
 
     const fetchInvestors = () => {
         setLoading(true);
@@ -28,7 +30,18 @@ export default function InvestorsPage() {
 
     useEffect(() => {
         fetchInvestors();
+        setUserRole(sessionStorage.getItem('edualliance_role') || 'ADMIN');
     }, []);
+
+    const deleteInvestor = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this investor record? This action is permanent.')) return;
+        try {
+            const res = await fetch(`/api/investors?id=${id}`, { method: 'DELETE' });
+            if (res.ok) fetchInvestors();
+        } catch (e) {
+            console.error('Failed to delete investor', e);
+        }
+    };
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
@@ -42,9 +55,10 @@ export default function InvestorsPage() {
             <div className="flex flex-col gap-8 relative">
 
                 <InvestorModal
-                    isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
+                    isOpen={isModalOpen || !!investorToEdit}
+                    onClose={() => { setIsModalOpen(false); setInvestorToEdit(null); }}
                     onSuccess={fetchInvestors}
+                    investor={investorToEdit}
                 />
 
                 <InvestorRepaymentsModal
@@ -128,18 +142,19 @@ export default function InvestorsPage() {
                                         <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Expected Return</th>
                                         <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Date Invested</th>
                                         <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border-subtle">
                                     {investors.length === 0 ? (
                                         <tr>
-                                            <td colSpan={7} className="px-6 py-8 text-center text-slate-500 text-sm font-bold">
+                                            <td colSpan={8} className="px-6 py-8 text-center text-slate-500 text-sm font-bold">
                                                 No investors have been added to the system yet.
                                             </td>
                                         </tr>
                                     ) : (
                                         investors.map((inv) => (
-                                            <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors cursor-pointer">
+                                            <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors cursor-pointer group">
                                                 <td className="px-6 py-4 text-xs font-mono text-slate-500">{inv.displayId}</td>
                                                 <td className="px-6 py-4 text-sm font-bold text-strong flex items-center gap-2">
                                                     <div className="size-8 rounded-full bg-brand-teal/10 flex items-center justify-center text-brand-teal text-xs font-bold uppercase ring-1 ring-brand-teal/20">
@@ -157,6 +172,26 @@ export default function InvestorsPage() {
                                                     <span className={`px-2 py-1 rounded-sm text-[10px] font-bold uppercase tracking-widest border bg-primary/10 text-primary border-primary/20`}>
                                                         {inv.status}
                                                     </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    {userRole === 'ADMIN' && (
+                                                        <div className="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); setInvestorToEdit(inv); }}
+                                                                className="size-8 rounded bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 flex items-center justify-center transition-colors"
+                                                                title="Edit Investor"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[16px]">edit</span>
+                                                            </button>
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); deleteInvestor(inv.id); }}
+                                                                className="size-8 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 flex items-center justify-center transition-colors"
+                                                                title="Delete Investor"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))

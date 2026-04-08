@@ -23,9 +23,9 @@ export const EditLoanModal = ({ isOpen, onClose, loan, onSave }: EditLoanModalPr
         }
     }, [loan]);
 
-    if (!isOpen || !loan) return null;
-
     const [isSaving, setIsSaving] = useState(false);
+
+    if (!isOpen || !loan) return null;
 
     const handleSave = async () => {
         setIsSaving(true);

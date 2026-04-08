@@ -11,6 +11,8 @@ export default function ExpensesPage() {
     const [investors, setInvestors] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [expenseToEdit, setExpenseToEdit] = useState<any>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
     const [activeReceiptUrl, setActiveReceiptUrl] = useState<string | null>(null);
     
     const currentMonthStr = new Date().toISOString().slice(0, 7);
@@ -45,7 +47,18 @@ export default function ExpensesPage() {
     useEffect(() => {
         fetchExpenses();
         fetchInvestors();
+        setUserRole(sessionStorage.getItem('edualliance_role') || 'ADMIN');
     }, []);
+
+    const deleteExpense = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this expense record? This action cannot be undone.')) return;
+        try {
+            const res = await fetch(`/api/expenses?id=${id}`, { method: 'DELETE' });
+            if (res.ok) fetchExpenses();
+        } catch (e) {
+            console.error('Failed to delete expense', e);
+        }
+    };
 
     const formatCurrency = (amount: number) => {
         if (amount >= 1000000) return `₦${(amount / 1000000).toFixed(2)}M`;
@@ -183,9 +196,10 @@ export default function ExpensesPage() {
                 )}
 
                 <ExpenseModal 
-                    isOpen={isModalOpen} 
-                    onClose={() => setIsModalOpen(false)} 
+                    isOpen={isModalOpen || !!expenseToEdit} 
+                    onClose={() => { setIsModalOpen(false); setExpenseToEdit(null); }} 
                     onSuccess={fetchExpenses} 
+                    expense={expenseToEdit}
                 />
 
                 {/* Header */}
@@ -326,24 +340,44 @@ export default function ExpensesPage() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                {exp.status === 'PENDING' && (
-                                                    <div className="flex justify-end gap-2">
-                                                        <button 
-                                                            onClick={(e) => { e.stopPropagation(); updateStatus(exp.rawId, 'APPROVED'); }}
-                                                            className="p-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                                                            title="Approve"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                                                        </button>
-                                                        <button 
-                                                            onClick={(e) => { e.stopPropagation(); updateStatus(exp.rawId, 'REJECTED'); }}
-                                                            className="p-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
-                                                            title="Reject"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[16px]">cancel</span>
-                                                        </button>
-                                                    </div>
-                                                )}
+                                                <div className="flex justify-end gap-2 items-center">
+                                                    {userRole === 'ADMIN' && (
+                                                        <>
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); setExpenseToEdit(exp); }}
+                                                                className="p-1 rounded bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-colors"
+                                                                title="Edit Expense"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[16px]">edit</span>
+                                                            </button>
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); deleteExpense(exp.rawId); }}
+                                                                className="p-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                                                                title="Delete Expense"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    {exp.status === 'PENDING' && (
+                                                        <>
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); updateStatus(exp.rawId, 'APPROVED'); }}
+                                                                className="p-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                                                                title="Approve"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                                                            </button>
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); updateStatus(exp.rawId, 'REJECTED'); }}
+                                                                className="p-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                                                                title="Reject"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[16px]">cancel</span>
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

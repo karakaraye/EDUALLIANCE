@@ -6,7 +6,7 @@ interface ExpenseModalProps {
     onSuccess: () => void;
 }
 
-export function ExpenseModal({ isOpen, onClose, onSuccess }: ExpenseModalProps) {
+export function ExpenseModal({ isOpen, onClose, onSuccess, expense }: ExpenseModalProps & { expense?: any }) {
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
     const [category, setCategory] = useState('Office');
@@ -25,10 +25,28 @@ export function ExpenseModal({ isOpen, onClose, onSuccess }: ExpenseModalProps) 
                 .then(res => res.json())
                 .then(data => setEmployees(data))
                 .catch(err => console.error('Failed to load users for expense tracking:', err));
-            // Preset to today
-            setDate(new Date().toISOString().split('T')[0]);
+            
+            if (expense) {
+                setDescription(expense.desc || '');
+                setAmount(expense.amount || '');
+                setCategory(expense.category || 'Office');
+                const rawDate = expense.rawDate ? new Date(expense.rawDate).toISOString().split('T')[0] : '';
+                setDate(rawDate);
+                setManagerId(expense.managerId || '');
+                setReceiptUrl(expense.receiptUrl || null);
+                if (expense.receiptUrl) setFileName('Existing Receipt');
+            } else {
+                // Preset to today for new
+                setDate(new Date().toISOString().split('T')[0]);
+                setDescription('');
+                setAmount('');
+                setCategory('Office');
+                setManagerId('');
+                setReceiptUrl(null);
+                setFileName('');
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, expense]);
 
     if (!isOpen) return null;
 
@@ -57,27 +75,32 @@ export function ExpenseModal({ isOpen, onClose, onSuccess }: ExpenseModalProps) 
         setSubmitting(true);
 
         try {
+            const method = expense ? 'PUT' : 'POST';
+            const body = {
+                id: expense?.rawId,
+                description,
+                amount,
+                category,
+                date,
+                managerId: expense ? undefined : managerId, // Don't update manager on edit
+                receiptUrl
+            };
+
             const res = await fetch('/api/expenses', {
-                method: 'POST',
+                method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    description,
-                    amount,
-                    category,
-                    date,
-                    managerId,
-                    receiptUrl
-                })
+                body: JSON.stringify(body)
             });
 
             if (res.ok) {
-                // Reset form
-                setDescription('');
-                setAmount('');
-                setCategory('Office');
-                setManagerId('');
-                setReceiptUrl(null);
-                setFileName('');
+                if (!expense) {
+                    setDescription('');
+                    setAmount('');
+                    setCategory('Office');
+                    setManagerId('');
+                    setReceiptUrl(null);
+                    setFileName('');
+                }
                 onSuccess();
                 onClose();
             } else {
@@ -153,7 +176,6 @@ export function ExpenseModal({ isOpen, onClose, onSuccess }: ExpenseModalProps) 
                             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Date</label>
                             <input 
                                 type="date" 
-                                min="2022-01-01"
                                 required
                                 value={date}
                                 onChange={e => setDate(e.target.value)}

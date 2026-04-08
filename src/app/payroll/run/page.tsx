@@ -94,7 +94,6 @@ export default function RunPayrollPage() {
                             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Payroll Month</label>
                             <input 
                                 type="month" 
-                                min="2022-01"
                                 value={payrollMonth}
                                 onChange={(e) => setPayrollMonth(e.target.value)}
                                 className="w-full bg-main/50 border border-border-subtle rounded-xl px-4 py-3 text-sm text-strong focus:outline-none focus:border-brand-teal transition-colors"

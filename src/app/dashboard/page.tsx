@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function DashboardPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -151,9 +152,6 @@ export default function DashboardPage() {
     const total6MoIncome = monthlyFinancials.reduce((sum, m) => sum + m.income, 0);
     const total6MoExpense = monthlyFinancials.reduce((sum, m) => sum + m.expense, 0);
     const efficiency = total6MoIncome > 0 ? (((total6MoIncome - total6MoExpense) / total6MoIncome) * 100).toFixed(1) : '0.0';
-    const maxChartVal = Math.max(...monthlyFinancials.map(m => Math.max(m.income, m.expense)), 10000);
-
-
     if (!isMounted) return null;
 
   return (
@@ -169,7 +167,7 @@ export default function DashboardPage() {
         {/* KPI Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
           {/* Metric 1 */}
-          <div className="group flex flex-col gap-4 rounded-2xl p-7 bg-panel border border-border-subtle hover:border-primary/30 transition-all duration-300">
+          <Link href="/loans" className="group flex flex-col gap-4 rounded-2xl p-7 bg-panel border border-border-subtle hover:border-primary/30 transition-all duration-300">
             <div className="flex justify-between items-center">
               <span className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Portfolio Assets</span>
               <div className="flex items-center gap-1 text-primary text-[11px] font-bold bg-primary/5 px-2 py-0.5 rounded-full border border-primary/10">
@@ -180,10 +178,10 @@ export default function DashboardPage() {
               <p className="text-strong text-4xl font-extrabold tracking-tighter">{formatCurrencyShort(portfolioAssets)}</p>
               <p className="text-slate-600 text-xs mt-1">vs. last fiscal month</p>
             </div>
-          </div>
+          </Link>
 
           {/* Metric 2 */}
-          <div className="group flex flex-col gap-4 rounded-2xl p-7 bg-panel border border-border-subtle hover:border-red-500/30 transition-all duration-300">
+          <Link href="/expenses" className="group flex flex-col gap-4 rounded-2xl p-7 bg-panel border border-border-subtle hover:border-red-500/30 transition-all duration-300">
             <div className="flex justify-between items-center">
               <span className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Total Expenses</span>
               <div className="flex items-center gap-1 text-red-400 text-[11px] font-bold bg-red-400/5 px-2 py-0.5 rounded-full border border-red-400/10">
@@ -194,10 +192,10 @@ export default function DashboardPage() {
               <p className="text-strong text-4xl font-extrabold tracking-tighter">{formatCurrencyShort(totalExpenses)}</p>
               <p className="text-slate-600 text-xs mt-1">Sourced from Payroll & Expenses</p>
             </div>
-          </div>
+          </Link>
 
           {/* Metric 3 */}
-          <div className="group flex flex-col gap-4 rounded-2xl p-7 bg-panel border border-border-subtle hover:border-primary/30 transition-all duration-300">
+          <Link href="/reports" className="group flex flex-col gap-4 rounded-2xl p-7 bg-panel border border-border-subtle hover:border-primary/30 transition-all duration-300">
             <div className="flex justify-between items-center">
               <span className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Annual Income</span>
               <div className="flex items-center gap-1 text-primary text-[11px] font-bold bg-primary/5 px-2 py-0.5 rounded-full border border-primary/10">
@@ -208,10 +206,10 @@ export default function DashboardPage() {
               <p className="text-strong text-4xl font-extrabold tracking-tighter">{formatCurrencyShort(annualIncome)}</p>
               <p className="text-slate-600 text-xs mt-1">YTD Revenue projection</p>
             </div>
-          </div>
+          </Link>
 
           {/* Metric 4 */}
-          <div className="group flex flex-col gap-4 rounded-2xl p-7 bg-panel border border-border-subtle hover:border-primary/30 transition-all duration-300">
+          <Link href="/reports" className="group flex flex-col gap-4 rounded-2xl p-7 bg-panel border border-border-subtle hover:border-primary/30 transition-all duration-300">
             <div className="flex justify-between items-center">
               <span className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Net Profit</span>
               <div className="flex items-center gap-1 text-primary text-[11px] font-bold bg-primary/5 px-2 py-0.5 rounded-full border border-primary/10">
@@ -222,7 +220,7 @@ export default function DashboardPage() {
               <p className={`text-4xl font-extrabold tracking-tighter ${netProfit >= 0 ? 'text-strong' : 'text-red-400'}`}>{formatCurrencyShort(netProfit)}</p>
               <p className="text-slate-600 text-xs mt-1">Net operational margin: 86%</p>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Main Content Grid */}
@@ -256,38 +254,37 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-            {/* Dynamic Tailwind Bar Chart */}
-            <div className="flex h-[220px] md:h-[280px] w-full items-end justify-between px-2 sm:px-6 pb-12 pt-4 relative">
-              {/* Horizontal grid lines */}
-              <div className="absolute inset-x-8 bottom-12 top-4 flex flex-col justify-between z-0 pointer-events-none opacity-[0.03]">
-                <div className="w-full border-t border-white"></div>
-                <div className="w-full border-t border-white"></div>
-                <div className="w-full border-t border-white"></div>
-                <div className="w-full border-t border-white"></div>
-              </div>
-              
-              {monthlyFinancials.map((data, idx) => (
-                  <div key={idx} className="flex flex-col items-center gap-2 z-10 flex-1 relative group w-full">
-                    <div className="flex items-end justify-center w-full gap-1 sm:gap-2 h-full">
-                      {/* Income Bar */}
-                      <div 
-                        className="w-1/3 max-w-[24px] bg-brand-teal rounded-t transition-all duration-500 relative hover:brightness-125 hover:shadow-[0_0_15px_rgba(52,211,153,0.3)]"
-                        style={{ height: `${(data.income / maxChartVal) * 100}%`, minHeight: '4px' }}
-                      >
-                         <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface border border-border-subtle text-strong text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 shadow-xl">In: {formatCurrencyShort(data.income)}</div>
-                      </div>
-                      {/* Expense Bar */}
-                      <div 
-                        className="w-1/3 max-w-[24px] bg-red-400 rounded-t transition-all duration-500 relative hover:brightness-125 hover:shadow-[0_0_15px_rgba(248,113,113,0.3)]"
-                        style={{ height: `${(data.expense / maxChartVal) * 100}%`, minHeight: '4px' }}
-                      >
-                         <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-surface border border-border-subtle text-strong text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 shadow-xl">Out: {formatCurrencyShort(data.expense)}</div>
-                      </div>
-                    </div>
-                    {/* X-Axis Label */}
-                    <span className="text-[10px] font-black text-slate-500 uppercase absolute -bottom-8">{data.label}</span>
-                  </div>
-              ))}
+            {/* Recharts Bar Chart */}
+            <div className="h-[260px] md:h-[320px] w-full pt-4 pb-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={monthlyFinancials}
+                  margin={{ top: 10, right: 10, left: 10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                  <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} dy={10} />
+                  <YAxis 
+                    stroke="#94a3b8" 
+                    fontSize={11} 
+                    tickFormatter={(value) => {
+                        if (value >= 1000000) return `₦${(value / 1000000).toFixed(1)}M`;
+                        if (value >= 1000) return `₦${(value / 1000).toFixed(0)}K`;
+                        return `₦${value}`;
+                    }} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    dx={-10}
+                  />
+                  <Tooltip 
+                    cursor={{fill: '#ffffff05'}}
+                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '12px', color: '#f8fafc', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                    formatter={(value: any) => [`₦${Number(value).toLocaleString()}`, '']}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#cbd5e1', paddingTop: '10px' }} />
+                  <Bar dataKey="income" name="Rev/Fees (Inflow)" fill="#34d399" radius={[4, 4, 0, 0]} maxBarSize={32} />
+                  <Bar dataKey="expense" name="Total Expenditure" fill="#f87171" radius={[4, 4, 0, 0]} maxBarSize={32} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
