@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { InvestorModal } from '@/components/forms/InvestorModal';
 import { InvestorRepaymentsModal } from '@/components/forms/InvestorRepaymentsModal';
