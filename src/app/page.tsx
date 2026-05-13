@@ -55,10 +55,7 @@ export default function LoginPage() {
             {/* Header */}
             <header className="px-10 py-6 flex justify-between items-center z-10">
                 <div className="flex items-center gap-3">
-                    {/* Logo Icon */}
-                    <div className="size-9 bg-brand-gradient rounded-lg flex items-center justify-center text-strong shadow-lg shadow-primary/20">
-                        <span className="material-symbols-outlined text-xl">account_balance_wallet</span>
-                    </div>
+                    <img src="/logo.svg" alt="Edualliance Logo" className="size-10 object-contain" />
                     <h1 className="text-strong text-xl font-extrabold tracking-tight">Edualliance</h1>
                 </div>
                 <div className="flex gap-4">
