@@ -319,6 +319,14 @@ export default function LoansPage() {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end items-center gap-2">
+                                                <Link 
+                                                    href={`/loans/${loan.id.replace('#', '')}/offer`}
+                                                    className="text-teal-500 hover:text-teal-400 bg-teal-500/10 hover:bg-teal-500/20 size-8 rounded-lg flex justify-center items-center transition-colors"
+                                                    title="View Offer Letter"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <span className="material-symbols-outlined text-[16px]">description</span>
+                                                </Link>
                                                 {loan.status === 'Paid Full' && (
                                                     <button 
                                                         onClick={(e) => {

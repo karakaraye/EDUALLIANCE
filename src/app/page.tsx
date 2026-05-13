@@ -56,7 +56,7 @@ export default function LoginPage() {
             <header className="px-10 py-6 flex justify-between items-center z-10">
                 <div className="flex items-center gap-3">
                     {/* Logo Icon */}
-                    <div className="size-9 bg-brand-teal rounded-lg flex items-center justify-center text-strong shadow-lg shadow-brand-teal/20">
+                    <div className="size-9 bg-brand-gradient rounded-lg flex items-center justify-center text-strong shadow-lg shadow-primary/20">
                         <span className="material-symbols-outlined text-xl">account_balance_wallet</span>
                     </div>
                     <h1 className="text-strong text-xl font-extrabold tracking-tight">Edualliance</h1>
@@ -65,7 +65,7 @@ export default function LoginPage() {
                     <button className="px-5 py-2 rounded-lg border border-border-subtle text-slate-400 text-sm font-bold hover:text-strong hover:bg-white/5 transition-all">
                         Support
                     </button>
-                    <button className="px-5 py-2 rounded-lg bg-[#06b6d4] text-strong text-sm font-bold hover:bg-[#0891b2] transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                    <button className="px-5 py-2 rounded-lg bg-brand-teal text-strong text-sm font-bold hover:bg-teal-600 transition-all shadow-[0_0_15px_rgba(0,164,189,0.3)]">
                         Need help?
                     </button>
                 </div>
@@ -145,7 +145,7 @@ export default function LoginPage() {
 
                                     <button 
                                         type="submit"
-                                        className="w-full h-12 mt-2 bg-brand-teal hover:bg-teal-600 text-strong font-bold rounded-lg transition-all shadow-lg shadow-teal-900/20 flex items-center justify-center gap-2"
+                                        className="w-full h-12 mt-2 bg-brand-gradient hover:opacity-90 text-strong font-bold rounded-lg transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
                                     >
                                         Authenticate <span className="material-symbols-outlined text-[18px]">lock_open</span>
                                     </button>

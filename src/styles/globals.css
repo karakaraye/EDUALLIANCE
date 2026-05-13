@@ -8,8 +8,8 @@
     --color-panel: 255 255 255;
     --color-surface: 241 245 249;
     --color-text-strong: 15 23 42;
-    --color-primary-brand: 52 211 153;
-    --color-brand-teal: 40 138 114;
+    --color-primary-brand: 26 58 95;
+    --color-brand-teal: 0 164 189;
     --color-border-subtle: #e2e8f0;
   }
   
@@ -18,8 +18,8 @@
     --color-panel: 22 27 34;
     --color-surface: 15 17 21;
     --color-text-strong: 255 255 255;
-    --color-primary-brand: 52 211 153;
-    --color-brand-teal: 40 138 114;
+    --color-primary-brand: 56 189 248; /* Brighter blue for dark mode */
+    --color-brand-teal: 0 164 189;
     --color-border-subtle: rgba(255, 255, 255, 0.08);
   }
 
@@ -28,6 +28,16 @@
     background-color: rgb(var(--color-main));
     color: rgb(var(--color-text-strong));
     transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .bg-brand-gradient {
+    background: linear-gradient(135deg, rgb(var(--color-brand-teal)) 0%, rgb(var(--color-primary-brand)) 100%);
+  }
+
+  .text-brand-gradient {
+    background: linear-gradient(135deg, rgb(var(--color-brand-teal)) 0%, rgb(var(--color-primary-brand)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 }
 
@@ -47,7 +57,7 @@
 
 /* Chart Gradients and Effects */
 .chart-gradient-stop {
-  stop-color: #34d399;
+  stop-color: #00a4bd;
 }
 
 .row-hover-effect:hover {

@@ -11,6 +11,10 @@ export const InvestorModal = ({ isOpen, onClose, onSuccess, investor }: Investor
     const [amountInvested, setAmountInvested] = useState('');
     const [interestRate, setInterestRate] = useState('');
     const [dateInvested, setDateInvested] = useState('');
+    const [address, setAddress] = useState('');
+    const [phone, setPhone] = useState('');
+    const [tenorMonths, setTenorMonths] = useState('12');
+    const [displayId, setDisplayId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
@@ -21,11 +25,19 @@ export const InvestorModal = ({ isOpen, onClose, onSuccess, investor }: Investor
             setInterestRate(investor.interestRate || '');
             const rawDate = investor.rawDate ? new Date(investor.rawDate).toISOString().split('T')[0] : '';
             setDateInvested(rawDate);
+            setAddress(investor.address || '');
+            setPhone(investor.phone || '');
+            setTenorMonths(investor.tenorMonths || '12');
+            setDisplayId(investor.displayId || '');
         } else {
             setName('');
             setAmountInvested('');
             setInterestRate('');
             setDateInvested('');
+            setAddress('');
+            setPhone('');
+            setTenorMonths('12');
+            setDisplayId('');
         }
     }, [investor, isOpen]);
 
@@ -43,7 +55,11 @@ export const InvestorModal = ({ isOpen, onClose, onSuccess, investor }: Investor
                 name,
                 amountInvested,
                 interestRate,
-                dateInvested
+                dateInvested,
+                address,
+                phone,
+                tenorMonths: Number(tenorMonths),
+                displayId
             };
 
             const res = await fetch('/api/investors', {
@@ -141,14 +157,60 @@ export const InvestorModal = ({ isOpen, onClose, onSuccess, investor }: Investor
                         </div>
 
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-slate-400">Date Invested</label>
+                            <label className="text-xs font-bold text-slate-400">Cert Number</label>
                             <input 
-                                type="date" 
-                                required
-                                value={dateInvested}
-                                onChange={(e) => setDateInvested(e.target.value)}
-                                className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-slate-400 focus:border-brand-teal focus:outline-none transition-colors" 
+                                type="text" 
+                                value={displayId}
+                                onChange={(e) => setDisplayId(e.target.value)}
+                                className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors" 
+                                placeholder="e.g. ED/PH/INV/1035"
                             />
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-bold text-slate-400">Investor Address</label>
+                            <input 
+                                type="text" 
+                                value={address}
+                                onChange={(e) => setAddress(e.target.value)}
+                                className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors" 
+                                placeholder="Full home/office address"
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-bold text-slate-400">Phone Number</label>
+                            <input 
+                                type="text" 
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors" 
+                                placeholder="e.g. 080..."
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold text-slate-400">Tenor (Months)</label>
+                                <input 
+                                    type="number" 
+                                    required
+                                    value={tenorMonths}
+                                    onChange={(e) => setTenorMonths(e.target.value)}
+                                    className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-strong focus:border-brand-teal focus:outline-none transition-colors" 
+                                    placeholder="e.g. 14"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold text-slate-400">Effective Date</label>
+                                <input 
+                                    type="date" 
+                                    required
+                                    value={dateInvested}
+                                    onChange={(e) => setDateInvested(e.target.value)}
+                                    className="w-full h-11 px-4 bg-main border border-border-subtle rounded-lg text-sm text-slate-400 focus:border-brand-teal focus:outline-none transition-colors" 
+                                />
+                            </div>
                         </div>
                     </div>
 

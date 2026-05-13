@@ -128,9 +128,13 @@ enum LedgerType {
 // Investors Module
 model Investor {
   id              String   @id @default(uuid())
+  displayId       String?  @unique
   name            String
+  address         String?
+  phone           String?
   amountInvested  Float
   interestRate    Float
+  tenorMonths     Int      @default(12)
   dateInvested    DateTime
   status          String   @default("ACTIVE")
   createdAt       DateTime @default(now())

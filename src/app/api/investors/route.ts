@@ -9,10 +9,13 @@ export async function GET() {
 
         const formatted = investors.map(inv => ({
             id: inv.id,
-            displayId: `INV-${inv.id.substring(0, 5).toUpperCase()}`,
+            displayId: inv.displayId || `INV-${inv.id.substring(0, 5).toUpperCase()}`,
             name: inv.name,
+            address: inv.address,
+            phone: inv.phone,
             amountInvested: inv.amountInvested,
             interestRate: inv.interestRate,
+            tenorMonths: inv.tenorMonths,
             dateInvested: new Date(inv.dateInvested).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             rawDate: inv.dateInvested,
             status: inv.status,
@@ -30,7 +33,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { name, amountInvested, interestRate, dateInvested } = body;
+        const { name, amountInvested, interestRate, dateInvested, address, phone, tenorMonths, displayId } = body;
 
         const investor = await prisma.investor.create({
             data: {
@@ -38,6 +41,10 @@ export async function POST(req: NextRequest) {
                 amountInvested: Number(amountInvested),
                 interestRate: Number(interestRate),
                 dateInvested: new Date(dateInvested),
+                address: address || undefined,
+                phone: phone || undefined,
+                tenorMonths: tenorMonths ? Number(tenorMonths) : 12,
+                displayId: displayId || undefined,
                 status: 'ACTIVE'
             }
         });
@@ -51,7 +58,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
     try {
         const body = await req.json();
-        const { id, name, amountInvested, interestRate, dateInvested, status } = body;
+        const { id, name, amountInvested, interestRate, dateInvested, status, address, phone, tenorMonths, displayId } = body;
 
         const updated = await prisma.investor.update({
             where: { id },
@@ -60,6 +67,10 @@ export async function PUT(req: NextRequest) {
                 amountInvested: amountInvested !== undefined ? Number(amountInvested) : undefined,
                 interestRate: interestRate !== undefined ? Number(interestRate) : undefined,
                 dateInvested: dateInvested ? new Date(dateInvested) : undefined,
+                address: address !== undefined ? address : undefined,
+                phone: phone !== undefined ? phone : undefined,
+                tenorMonths: tenorMonths !== undefined ? Number(tenorMonths) : undefined,
+                displayId: displayId !== undefined ? displayId : undefined,
                 status: status || undefined
             }
         });

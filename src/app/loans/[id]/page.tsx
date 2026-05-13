@@ -123,6 +123,9 @@ export default function LoanDetailPage() {
                             </p>
                         </div>
                         <div className="flex gap-3">
+                            <Link href={`/loans/${loanId}/offer`} className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-border-subtle text-slate-300 rounded-lg text-xs font-bold hover:bg-white/10 transition-all">
+                                <span className="material-symbols-outlined text-[18px]">description</span> Offer Letter
+                            </Link>
                             <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-brand-teal text-strong rounded-lg text-xs font-bold hover:bg-teal-600 transition-all shadow-lg shadow-teal-900/20">
                                 <span className="material-symbols-outlined text-[18px]">print</span> Print Record
                             </button>

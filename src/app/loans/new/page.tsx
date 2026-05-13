@@ -279,6 +279,12 @@ export default function NewLoanPage() {
                 {/* Footer Actions */}
                 <div className="flex justify-end gap-3 pt-6 border-t border-border-subtle">
                     <button className="px-6 py-3 rounded-lg border border-border-subtle text-slate-300 text-sm font-bold hover:bg-white/5 transition-all">Save Draft</button>
+                    <button 
+                        onClick={() => alert("Please disburse the loan first to generate the official offer letter. Preview mode is being optimized.")}
+                        className="px-6 py-3 rounded-lg border border-teal-500/30 text-teal-500 text-sm font-bold hover:bg-teal-500/10 transition-all"
+                    >
+                        Preview Offer Letter
+                    </button>
                     <button onClick={handleDisburse} className="px-6 py-3 rounded-lg bg-brand-teal hover:bg-teal-600 text-strong text-sm font-bold shadow-lg shadow-teal-900/20 transition-all">Disburse Loan</button>
                 </div>
 

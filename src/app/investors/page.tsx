@@ -176,6 +176,14 @@ export default function InvestorsPage() {
                                                 <td className="px-6 py-4 text-right">
                                                     {userRole === 'ADMIN' && (
                                                         <div className="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <Link 
+                                                                href={`/investors/${inv.id}/certificate`}
+                                                                className="size-8 rounded bg-teal-500/10 text-teal-500 hover:bg-teal-500/20 flex items-center justify-center transition-colors"
+                                                                title="View Certificate"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <span className="material-symbols-outlined text-[16px]">verified</span>
+                                                            </Link>
                                                             <button 
                                                                 onClick={(e) => { e.stopPropagation(); setInvestorToEdit(inv); }}
                                                                 className="size-8 rounded bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 flex items-center justify-center transition-colors"
