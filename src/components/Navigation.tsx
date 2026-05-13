@@ -159,7 +159,7 @@ export const Navigation = () => {
         <header className="print:hidden flex items-center justify-between whitespace-nowrap border-b border-border-subtle bg-main/80 backdrop-blur-md px-6 lg:px-10 py-3 sticky top-0 z-50">
             <div className="flex items-center gap-10">
                 <Link href="/" className="flex items-center gap-2">
-                    <img src="/logo.svg" alt="Edualliance Logo" className="size-10 object-contain" />
+                    <img src="/logo.png" alt="Edualliance Logo" className="size-10 object-contain" />
                     <h2 className="text-strong text-xl font-extrabold tracking-tight">Edualliance</h2>
                 </Link>
 

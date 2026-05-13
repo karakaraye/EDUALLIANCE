@@ -75,7 +75,7 @@ export default function OfferLetterPage() {
                 <div className="flex justify-between items-start mb-10 border-b-2 border-slate-100 pb-8">
                     <div className="flex items-center gap-4">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/logo.svg" alt="Edualliance Logo" className="w-14" />
+                        <img src="/logo.png" alt="Edualliance Logo" className="w-14" />
                         <div>
                             <h2 className="text-xl font-black text-[#1a3a5f] tracking-tight">Edualliance</h2>
                             <p className="text-[9px] font-bold text-brand-teal uppercase tracking-[0.2em] italic">We promote education</p>

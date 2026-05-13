@@ -55,7 +55,7 @@ export default function LoginPage() {
             {/* Header */}
             <header className="px-10 py-6 flex justify-between items-center z-10">
                 <div className="flex items-center gap-3">
-                    <img src="/logo.svg" alt="Edualliance Logo" className="size-10 object-contain" />
+                    <img src="/logo.png" alt="Edualliance Logo" className="size-10 object-contain" />
                     <h1 className="text-strong text-xl font-extrabold tracking-tight">Edualliance</h1>
                 </div>
                 <div className="flex gap-4">
